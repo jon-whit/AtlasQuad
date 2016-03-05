@@ -172,6 +172,7 @@ local.properties
 
 # OSX / *nix default autosave extension
 *.m~
+*.autosave
 
 # Compiled MEX binaries (all platforms)
 *.mex*

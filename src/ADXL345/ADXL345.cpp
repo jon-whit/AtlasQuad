@@ -467,7 +467,7 @@ void ADXL345::setDataFormatControl(uint8_t settings)
     i2c_.write(ADXL345_I2C_WRITE, tx, 2);   
 }
 
-void ADXL345::getOutput(int16_t *readings)
+void ADXL345::getRawOutput(int16_t *readings)
 {
     char tx = ADXL345_DATAX0_REG;
     char output[6];
@@ -475,7 +475,45 @@ void ADXL345::getOutput(int16_t *readings)
     i2c_.write(ADXL345_I2C_WRITE, &tx, 1);
     i2c_.read(ADXL345_I2C_READ, output, 6); // read DATAX0-1, DATAY0-1, DATAZ0-1
     
-    readings[0] = (int16_t) ((output[1] << 8) | output[0]);
-    readings[1] = (int16_t) ((output[3] << 8) | output[2]);
-    readings[2] = (int16_t) ((output[5] << 8) | output[4]);
+    readings[0] = ((int16_t) output[1] << 8) | output[0];
+    readings[1] = ((int16_t) output[3] << 8) | output[2];
+    readings[2] = ((int16_t) output[5] << 8) | output[4];
+}
+
+AccelG ADXL345::getAccelG(void)
+{
+    int16_t readings[3] = {-1, -1, -1};
+    getRawOutput(readings);
+    
+    uint8_t format = getDataFormatControl();
+    
+    /*
+     * The range is calculated with the function:
+     * 
+     * f(x) = 2^(x+2)
+     *
+     * where x can be:
+     * 0 -> +/- 2g
+     * 1 -> +/- 4g
+     * 2 -> +/- 8g
+     * 3 -> +/- 16g
+     */
+    uint8_t range = 1 << ((format & 0x03) + 2);
+    
+    float scale;
+    if (format & 0x08)
+    {
+        scale = 0.004;
+    } 
+    else 
+    {   
+        scale = (float) range / 1024;
+    }
+    
+    AccelG res;
+    res.x = readings[0] * scale;
+    res.y = readings[1] * scale;
+    res.z = readings[2] * scale;
+    
+    return res;
 }

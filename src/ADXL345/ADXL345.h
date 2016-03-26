@@ -115,6 +115,14 @@
 #define ADXL345_Y           0x01
 #define ADXL345_Z           0x02
 
+typedef struct AccelG {
+    
+    float x;
+    float y;
+    float z;
+    
+} AccelG;
+
 class ADXL345
 {
 public:
@@ -501,10 +509,18 @@ public:
     /**
      * Get the output of all three axes.
      *
-     * @param readings - A pointer to a buffer to hold the accelerometer value for the
+     * @param readings - A pointer to a buffer to hold the raw accelerometer values for the
      *        x-axis, y-axis and z-axis [in that order].
      */
-    void getOutput(int16_t *readings);
+    void getRawOutput(int16_t *readings);
+    
+    /**
+     * Get the acceleration in G's according to the data format
+     * that is currently set.
+     *
+     * @return A struct containing the acceleration in the X, Y, and Z coordinates.
+     */
+    AccelG getAccelG(void);
     
     /**
      * Get the FIFO control settings.

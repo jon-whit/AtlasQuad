@@ -7,26 +7,26 @@ private:
 
     void Initialize(void);
     
-    double dispKp;              // * we'll hold on to the tuning parameters in user-entered 
-    double dispKi;              //   format for display purposes
-    double dispKd;              //
+    float dispKp;              // * we'll hold on to the tuning parameters in user-entered 
+    float dispKi;              //   format for display purposes
+    float dispKd;              //
     
-    double kp;                  // * (P)roportional Tuning Parameter
-    double ki;                  // * (I)ntegral Tuning Parameter
-    double kd;                  // * (D)erivative Tuning Parameter
+    float kp;                  // * (P)roportional Tuning Parameter
+    float ki;                  // * (I)ntegral Tuning Parameter
+    float kd;                  // * (D)erivative Tuning Parameter
 
     int controllerDirection;
 
-    double *myInput;              // * Pointers to the Input, Output, and Setpoint variables
-    double *myOutput;             //   This creates a hard link between the variables and the 
-    double *mySetpoint;           //   PID, freeing the user from having to constantly tell us
+    float *myInput;              // * Pointers to the Input, Output, and Setpoint variables
+    float *myOutput;             //   This creates a hard link between the variables and the 
+    float *mySetpoint;           //   PID, freeing the user from having to constantly tell us
                                   //   what these values are.  with pointers we'll just know.
               
     unsigned long lastTime;
-    double ITerm, lastInput;
+    float ITerm, lastInput;
 
     unsigned long SampleTime;
-    double outMin, outMax;
+    float outMin, outMax;
     bool inAuto;
     
 public:
@@ -35,24 +35,30 @@ public:
     #define MANUAL    0
     #define DIRECT    0
     #define REVERSE   1
+    #define PID_OUT_MIN 1000
+    #define PID_OUT_MAX 1900
       
-    PID(double* Input, double* Output, double* Setpoint,
-        double Kp, double Ki, double Kd, int ControllerDirection);
+    PID(float* Input, float* Output, float* Setpoint,
+        float Kp, float Ki, float Kd, int ControllerDirection);
         
     bool Compute(void);
     
-    void SetTunings(double Kp, double Ki, double Kd);
+    void SetTunings(float Kp, float Ki, float Kd);
     void SetSampleTime(int NewSampleTime);
-    void SetOutputLimits(double Min, double Max);
+    void SetOutputLimits(float Min, float Max);
     void SetMode(int Mode);
     void SetControllerDirection(int Direction);
     
-    double GetKp();
-    double GetKi();
-    double GetKd();
+    float GetKp();
+    float GetKi();
+    float GetKd();
     int GetMode();
     int GetDirection();
         
 };
+
+void PIDInit(void);
+void PIDUpdate(void);
+void PIDCompute(void);
 
 #endif

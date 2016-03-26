@@ -1,15 +1,100 @@
 #include "mbed.h"
 #include "motors.h"
 #include "ITG3200.h"
+#include "ADXL345.h"
 #include "pid.h"
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
 Serial pc(SERIAL_TX, SERIAL_RX); // TX, RX
-//ITG3200 gyro(PB_9, PB_8);
+ITG3200 gyro(PB_9, PB_8);
+ADXL345 accl(PB_9, PB_8);
 
-int setpoint = 0;
+const float acclAlpha = 0.5;
+const float gyroAlpha = 0.98;
+const int gyroOffsetX = 0;
+const int gyroOffsetY = 0;
+const int gyroOffsetZ = 0;
 
-int mspeed1 = MOTOR_MIN, mspeed2 = MOTOR_MIN;
-int mspeed3 = MOTOR_MIN, mspeed4 = MOTOR_MIN;
+uint16_t throttle = 0;
+
+float fXg = 0;
+float fYg = 0;
+float fZg = 0;
+
+AccelG fG;
+float acclPitch, acclRoll; // (deg)
+
+float gyroPitch, gyroRoll, gyroYaw; // (deg)
+
+float pitch, roll, yaw = 0.0;
+
+// PID variables
+float pid_roll_in,   pid_roll_out,   pid_roll_setpoint = 0;
+float pid_pitch_in,  pid_pitch_out,  pid_pitch_setpoint = 0;
+float pid_yaw_in,  pid_yaw_out,  pid_yaw_setpoint = 0;
+
+int mspeed1 = MOTOR_MIN, mspeed3 = MOTOR_MIN; // Motors along the x-axis
+//=> Changing their speeds will affect the pitch
+
+int mspeed2 = MOTOR_MIN, mspeed4 = MOTOR_MIN; // Motors along the y-axis
+//=> Changing their speeds will affect the roll
+
+void InitIMU(void)
+{
+    // Configure the Low-pass filter mode on the ITG3200 gyro
+    gyro.setLpBandwidth(LPFBW_188HZ);
+    
+    // Put the ADXL345 into standby mode to configure the device
+    accl.setPowerControl(0x00);
+    
+    // Configure the ADXL345 in 10-bit resolution, +/-16g range, 200 Hz data rate
+    accl.setDataFormatControl(0x03);
+    accl.setDataRate(ADXL345_200HZ);
+    
+    // Start ADXL345 measurement mode
+    accl.setPowerControl(0x08);
+}
+
+void GetAngleMeasurements()
+{
+    // Get the forces in X, Y, and Z
+    fG = accl.getAccelG();
+    
+    // Low Pass Filter
+    fXg = fG.x * acclAlpha + (fXg * (1.0 - acclAlpha));
+    fYg = fG.y * acclAlpha + (fYg * (1.0 - acclAlpha));
+    fZg = fG.z * acclAlpha + (fZg * (1.0 - acclAlpha));
+    
+    // Roll & Pitch Equations
+    acclRoll  = (atan2(-fYg, fZg)*180.0)/M_PI;
+    acclPitch = (atan2(fXg, sqrt(fYg*fYg + fZg*fZg))*180.0)/M_PI;
+    
+    // TODO: Fill this out gyroRoll = ;
+    // TODO: Fill this out gyroPitch = ;    
+    
+    // Complementary filter
+    roll  = gyroAlpha*gyroRoll  + (1-gyroAlpha)*acclRoll;
+    pitch = gyroAlpha*gyroPitch + (1-gyroAlpha)*acclPitch;
+}
+
+void ControlUpdate()
+{
+    // Update the PID control values, and issue a PID computation
+    PIDUpdate();
+    PIDCompute();
+    
+    // Calculate the new motor speeds
+    mspeed1 = throttle + pid_pitch_out;
+    mspeed2 = throttle + pid_roll_out;
+    mspeed3 = throttle - pid_pitch_out;
+    mspeed4 = throttle - pid_roll_out;
+    
+    // Update the motor speeds
+    UpdateMotors(&mspeed1, &mspeed2, &mspeed3, &mspeed4);
+}
 
 int main()
 {
@@ -17,29 +102,17 @@ int main()
     InitMotors();
     
     pc.printf("Initializing IMU...\r\n");
+    InitIMU();
+    
+    pc.printf("Initializing PID Controllers...\r\n");
+    PIDInit();
     
     pc.printf("Arming Motors...\r\n");
     ArmMotors();
     
     while (1)
-    {
-        char c = pc.getc();
-        if(c == 'u') {
-            mspeed1 += 10;
-            mspeed2 += 10;
-            mspeed3 += 10;
-            mspeed4 += 10;
-            UpdateMotors(&mspeed1, &mspeed2, &mspeed3, &mspeed4);
-            pc.printf("%i us\r\n", mspeed1);
-        }
-        
-        if(c == 'd') {
-            mspeed1 -= 10;
-            mspeed2 -= 10;
-            mspeed3 -= 10;
-            mspeed4 -= 10;
-            UpdateMotors(&mspeed1, &mspeed2, &mspeed3, &mspeed4);
-            pc.printf("%i us\r\n", mspeed1);
-        } 
+    {   
+        GetAngleMeasurements();
+        ControlUpdate();  
     }
 }

@@ -1,8 +1,11 @@
 #include "mbed.h"
 #include "pid.h"
 
-PID::PID(double* Input, double* Output, double* Setpoint,
-         double Kp, double Ki, double Kd, int ControllerDirection)
+extern float pid_roll_in, pid_pitch_in, pid_yaw_in;
+extern float roll, pitch, yaw;
+
+PID::PID(float* Input, float* Output, float* Setpoint,
+         float Kp, float Ki, float Kd, int ControllerDirection)
 {
     
     myOutput = Output;
@@ -10,10 +13,10 @@ PID::PID(double* Input, double* Output, double* Setpoint,
     mySetpoint = Setpoint;
     inAuto = false;
     
-    PID::SetOutputLimits(1000, 1900);           //default output limit corresponds to PWM limits
+    PID::SetOutputLimits(PID_OUT_MIN, PID_OUT_MAX);  //default output limit corresponds to PWM limits
                                                 
 
-    SampleTime = 100;                           //default Controller Sample Time is 0.1 seconds
+    SampleTime = 100;                                //default Controller Sample Time is 0.1 seconds
 
     PID::SetControllerDirection(ControllerDirection);
     PID::SetTunings(Kp, Ki, Kd);
@@ -29,15 +32,15 @@ bool PID::Compute()
    if(timeChange>=SampleTime)
    {
       /*Compute all the working error variables*/
-      double input = *myInput;
-      double error = *mySetpoint - input;
+      float input = *myInput;
+      float error = *mySetpoint - input;
       ITerm+= (ki * error);
       if(ITerm > outMax) ITerm= outMax;
       else if(ITerm < outMin) ITerm= outMin;
-      double dInput = (input - lastInput);
+      float dInput = (input - lastInput);
  
       /*Compute PID Output*/
-      double output = kp * error + ITerm- kd * dInput;
+      float output = kp * error + ITerm- kd * dInput;
       
       if(output > outMax) output = outMax;
       else if(output < outMin) output = outMin;
@@ -51,13 +54,13 @@ bool PID::Compute()
    else return false;
 }
 
-void PID::SetTunings(double Kp, double Ki, double Kd)
+void PID::SetTunings(float Kp, float Ki, float Kd)
 {
    if (Kp<0 || Ki<0 || Kd<0) return;
  
    dispKp = Kp; dispKi = Ki; dispKd = Kd;
    
-   double SampleTimeInSec = ((double)SampleTime)/1000;  
+   float SampleTimeInSec = ((float)SampleTime)/1000;  
    kp = Kp;
    ki = Ki * SampleTimeInSec;
    kd = Kd / SampleTimeInSec;
@@ -74,15 +77,15 @@ void PID::SetSampleTime(int NewSampleTime)
 {
    if (NewSampleTime > 0)
    {
-      double ratio  = (double)NewSampleTime
-                      / (double)SampleTime;
+      float ratio  = (float)NewSampleTime
+                      / (float)SampleTime;
       ki *= ratio;
       kd /= ratio;
       SampleTime = (unsigned long)NewSampleTime;
    }
 }
 
-void PID::SetOutputLimits(double Min, double Max)
+void PID::SetOutputLimits(float Min, float Max)
 {
    if(Min >= Max) return;
    outMin = Min;
@@ -127,8 +130,25 @@ void PID::SetControllerDirection(int Direction)
    controllerDirection = Direction;
 }
 
-double PID::GetKp(){ return  dispKp; }
-double PID::GetKi(){ return  dispKi;}
-double PID::GetKd(){ return  dispKd;}
+float PID::GetKp(){ return  dispKp; }
+float PID::GetKi(){ return  dispKi;}
+float PID::GetKd(){ return  dispKd;}
 int PID::GetMode(){ return  inAuto ? AUTOMATIC : MANUAL;}
 int PID::GetDirection(){ return controllerDirection;}
+
+void PIDInit(void)
+{
+    
+}
+
+void PIDUpdate(void)
+{
+    pid_roll_in  = roll;
+    pid_pitch_in = pitch;
+    pid_yaw_in   = yaw;
+}
+
+void PIDCompute(void)
+{
+
+}

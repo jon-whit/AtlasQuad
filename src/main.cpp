@@ -2,6 +2,7 @@
 #include "motors.h"
 #include "ITG3200.h"
 #include "ADXL345.h"
+#include "xbeeuart.h"
 #include "pid.h"
 
 #ifndef M_PI
@@ -11,6 +12,7 @@
 Serial pc(SERIAL_TX, SERIAL_RX); // TX, RX
 ITG3200 gyro(PB_9, PB_8);
 ADXL345 accl(PB_9, PB_8);
+XBeeUART comm((uint16_t) 1); // 16-bit remote address of 1
 
 const float acclAlpha = 0.5;
 const float gyroAlpha = 0.98;
@@ -109,12 +111,22 @@ int main()
     pc.printf("Initializing PID Controllers...\r\n");
     PIDInit();
     
+    pc.printf("Initializing Communications...\r\n");
+    comm.init();
+
     pc.printf("Arming Motors...\r\n");
     ArmMotors();
     
     while (1)
     {   
+        comm.process_frames();
         GetAngleMeasurements();
         ControlUpdate();  
+
+        // maybe place this in its own thread/interrupt-driven callback
+        uint8_t message = comm.get_message_byte();
+        if(message != 0) {
+            pc.printf("Received byte %x\r\n", message);
+        }
     }
 }

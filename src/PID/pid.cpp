@@ -1,8 +1,7 @@
 #include "mbed.h"
 #include "pid.h"
 
-extern float pid_roll_in, pid_pitch_in, pid_yaw_in;
-extern float roll, pitch, yaw;
+PID roll_controller(&pid_roll_in, &pid_roll_out, &pid_roll_setpoint, 5.0, 0.0, 0.0, REVERSE);
 
 PID::PID(float* Input, float* Output, float* Setpoint,
          float Kp, float Ki, float Kd, int ControllerDirection)

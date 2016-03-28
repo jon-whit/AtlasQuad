@@ -1,6 +1,11 @@
 #ifndef PID_H
 #define PID_H
 
+extern float pid_roll_in, pid_pitch_in, pid_yaw_in;
+extern float pid_roll_out, pid_pitch_out, pid_yaw_out;
+extern float pid_roll_setpoint, pid_pitch_setpoint, pid_yaw_setpoint;
+extern float roll, pitch, yaw;
+
 class PID
 {
 private:

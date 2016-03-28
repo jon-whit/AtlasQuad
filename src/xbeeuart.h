@@ -26,6 +26,11 @@ public:
     XBeeUART(uint16_t remote_address);
 
     /**
+     * Initialize XBee module
+     */
+    void init();
+
+    /**
      * Get most recent message (first byte, anyway) received by the radio.
      * Note that this specifically ignores broadcast packets, just in case there is an
      * unknown device spamming the channel with bogus packets.
@@ -53,10 +58,10 @@ public:
     void process_frames();
 
 private:
-    XBeeLib::XBee802 xbee_;
-    XBeeLib::RemoteXBee802 remote_device_;
+    XBeeLib::XBee802 *xbee_;
+    XBeeLib::RemoteXBee802 *remote_device_;
     static void receive_cb_(const XBeeLib::RemoteXBee802& remote, bool broadcast, const uint8_t *const data, uint16_t len);
-    uint8_t recent_msg_byte_;
+    static uint8_t recent_msg_byte_;
 };
 
 #endif

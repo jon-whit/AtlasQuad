@@ -13,3 +13,8 @@
 #define SYNC_OPS_TIMEOUT_MS 2000
 
 // XBee pin definitions
+#define RADIO_TX    PC_4
+#define RADIO_RX    PC_5
+#define RADIO_RESET PC_6
+#define RADIO_RTS   PB_1
+#define RADIO_CTS   PB_13

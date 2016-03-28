@@ -2,28 +2,26 @@
 #include "config.h"
 #include "xbeeuart.h"
 
-using namespace XbeeLib;
+using namespace XBeeLib;
 
-XBeeUART::XbeeUART() {
-    xbee_ = XBee802(RADIO_TX, RADIO_RX, RADIO_RESET); // constants in config.h
-    xbee_.register_receive_cb(&receive_cb_);
+uint8_t recent_msg_byte_ = 0;
+
+XBeeUART::XBeeUART() {
     remote_device_ = NULL;
-    recent_message_ = 0;
 }
 
-XBeeUART::XbeeUART(uint16_t remote_address) {
-    xbee_ = XBee802(RADIO_TX, RADIO_RX, RADIO_RESET); // constants in config.h
-    xbee_.register_receive_cb(&receive_cb_);
-    remote_device_ = RemoteXBee802(remote_address);
-    recent_message_ = 0;
+XBeeUART::XBeeUART(uint16_t remote_address) {
+    remote_device_ = new RemoteXBee802(remote_address);
 }
 
 void XBeeUART::init() {
-    xbee_.init();
+    xbee_ = new XBee802(RADIO_TX, RADIO_RX, RADIO_RESET, RADIO_RTS, RADIO_CTS, 9600); // constants in config.h
+    xbee_->register_receive_cb(&receive_cb_);
+    xbee_->init();
 }
 
 void XBeeUART::process_frames() {
-    xbee_.process_rx_frames();
+    xbee_->process_rx_frames();
 }
 
 uint8_t XBeeUART::get_message_byte() {
@@ -31,8 +29,8 @@ uint8_t XBeeUART::get_message_byte() {
 }
 
 uint8_t XBeeUART::broadcast_data(uint8_t data[]) {
-    const uint16_t data_len = sizeof data / sizeof data[0] - 1; // get data length by checking pointers
-    TxStatus txStatus = xbee_.send_data_broadcast(data, data_len);
+    const uint16_t data_len = sizeof(data) / sizeof(*data) - 1; // get data length by checking pointers
+    TxStatus txStatus = xbee_->send_data_broadcast(data, data_len);
     if(txStatus != TxStatusSuccess) {
         return (uint8_t) txStatus;
     } else {
@@ -46,8 +44,8 @@ uint8_t XBeeUART::send_data(uint8_t data[]) {
         return 254; // remote device was not defined
     }
 
-    const uint16_t data_len = sizeof data / sizeof data[0] - 1; // get data length by checking pointers
-    TxStatus txStatus = xbee_.send_data(remote_device_, data, data_len);
+    const uint16_t data_len = sizeof(data) / sizeof(*data) - 1; // get data length by checking pointers
+    TxStatus txStatus = xbee_->send_data(*remote_device_, data, data_len);
     if(txStatus != TxStatusSuccess) {
         // this should probably handle the error and give more information
         return (uint8_t) txStatus;
@@ -56,7 +54,7 @@ uint8_t XBeeUART::send_data(uint8_t data[]) {
     }
 }
 
-static void XBeeUART::receive_cb_(const RemoteXBee802& remote, bool broadcast, const uint8_t *const data, uint16_t len) {
+void XBeeUART::receive_cb_(const RemoteXBee802& remote, bool broadcast, const uint8_t *const data, uint16_t len) {
     // process data - future implementation
     
 

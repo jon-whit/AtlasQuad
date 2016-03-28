@@ -35,6 +35,8 @@ public:
      * Note that this specifically ignores broadcast packets, just in case there is an
      * unknown device spamming the channel with bogus packets.
      *
+     * Once this function is called, the most recent byte gets reset back to zero (until
+     * a new message arrives)
      */
     uint8_t get_message_byte();
 

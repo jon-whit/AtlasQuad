@@ -4,7 +4,7 @@
 
 using namespace XBeeLib;
 
-uint8_t recent_msg_byte_ = 0;
+uint8_t XBeeUART::recent_msg_byte_ = 0;
 
 XBeeUART::XBeeUART() {
     remote_device_ = NULL;
@@ -25,7 +25,9 @@ void XBeeUART::process_frames() {
 }
 
 uint8_t XBeeUART::get_message_byte() {
-    return recent_msg_byte_;
+    uint8_t msg = recent_msg_byte_;
+    recent_msg_byte_ = 0;
+    return msg;
 }
 
 uint8_t XBeeUART::broadcast_data(uint8_t data[]) {

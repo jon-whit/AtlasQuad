@@ -12,7 +12,7 @@
 Serial pc(SERIAL_TX, SERIAL_RX); // TX, RX
 ITG3200 gyro(PB_9, PB_8);
 ADXL345 accl(PB_9, PB_8);
-XBeeUART comm((uint16_t) 1); // 16-bit remote address of 1
+XBeeUART comm((uint16_t) 0); // 16-bit remote address of 1
 
 const float acclAlpha = 0.5;
 const float gyroAlpha = 0.98;

@@ -8,6 +8,8 @@
 #define M_PI 3.14159265358979323846
 #endif
 
+#define SAMPLE_TIME 0.5 // (ms) --> 2kHz
+
 Serial pc(SERIAL_TX, SERIAL_RX); // TX, RX
 ITG3200 gyro(PB_9, PB_8);
 ADXL345 accl(PB_9, PB_8);
@@ -17,6 +19,9 @@ const float gyroAlpha = 0.98;
 const int gyroOffsetX = 0;
 const int gyroOffsetY = 0;
 const int gyroOffsetZ = 0;
+
+Timer t; // global timer
+uint32_t tprev;
 
 uint16_t throttle = 0;
 
@@ -62,24 +67,31 @@ void InitIMU(void)
 
 void GetAngleMeasurements()
 {
-    // Get the forces in X, Y, and Z
-    fG = accl.getAccelG();
-    
-    // Low Pass Filter
-    fXg = fG.x * acclAlpha + (fXg * (1.0 - acclAlpha));
-    fYg = fG.y * acclAlpha + (fYg * (1.0 - acclAlpha));
-    fZg = fG.z * acclAlpha + (fZg * (1.0 - acclAlpha));
-    
-    // Roll & Pitch Equations
-    acclRoll  = (atan2(-fYg, fZg)*180.0)/M_PI;
-    acclPitch = (atan2(fXg, sqrt(fYg*fYg + fZg*fZg))*180.0)/M_PI;
-    
-    // TODO: Fill this out gyroRoll = ;
-    // TODO: Fill this out gyroPitch = ;    
-    
-    // Complementary filter
-    roll  = gyroAlpha*gyroRoll  + (1-gyroAlpha)*acclRoll;
-    pitch = gyroAlpha*gyroPitch + (1-gyroAlpha)*acclPitch;
+    if (t.read_ms() - tprev >= SAMPLE_TIME)
+    {
+        // Get the forces in X, Y, and Z
+        fG = accl.getAccelG();
+
+        // Low Pass Filter
+        fXg = fG.x * acclAlpha + (fXg * (1.0 - acclAlpha));
+        fYg = fG.y * acclAlpha + (fYg * (1.0 - acclAlpha));
+        fZg = fG.z * acclAlpha + (fZg * (1.0 - acclAlpha));
+
+        // Roll & Pitch Equations
+        acclRoll  = (atan2(-fYg, fZg)*180.0)/M_PI;
+        acclPitch = (atan2(fXg, sqrt(fYg*fYg + fZg*fZg))*180.0)/M_PI;
+
+        // Calculate the roll and pitch angles from the gyro measurements
+        float groll = (float) gyro.getGyroX() / 14.375;
+        float gpitch = (float) gyro.getGyroY() / 14.375;
+        uint32_t dt = t.read_ms() - tprev;
+        gyroRoll += groll * dt;
+        gyroPitch += gpitch * dt;
+
+        // Complementary filter
+        roll  = gyroAlpha*gyroRoll  + (1-gyroAlpha)*acclRoll;
+        pitch = gyroAlpha*gyroPitch + (1-gyroAlpha)*acclPitch;
+    }
 }
 
 void ControlUpdate()
@@ -89,9 +101,9 @@ void ControlUpdate()
     PIDCompute();
     
     // Calculate the new motor speeds
-    mspeed1 = throttle + pid_pitch_out;
+    //mspeed1 = throttle + pid_pitch_out;
     mspeed2 = throttle + pid_roll_out;
-    mspeed3 = throttle - pid_pitch_out;
+    //mspeed3 = throttle - pid_pitch_out;
     mspeed4 = throttle - pid_roll_out;
     
     // Update the motor speeds
@@ -100,6 +112,9 @@ void ControlUpdate()
 
 int main()
 {
+    // Start the global timer
+    t.start();
+    
     pc.printf("Initializing Motors...\r\n");
     InitMotors();
     
@@ -107,7 +122,7 @@ int main()
     InitIMU();
     
     pc.printf("Initializing PID Controllers...\r\n");
-    PIDInit();
+    PIDInit(1); // Initialize the PID controllers with a 1kHz sampling rate
     
     pc.printf("Arming Motors...\r\n");
     ArmMotors();
@@ -115,6 +130,8 @@ int main()
     while (1)
     {   
         GetAngleMeasurements();
-        ControlUpdate();  
+        ControlUpdate();
+        
+        tprev = t.read_ms();
     }
 }

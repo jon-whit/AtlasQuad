@@ -5,7 +5,16 @@ extern float pid_roll_in, pid_pitch_in, pid_yaw_in;
 extern float pid_roll_out, pid_pitch_out, pid_yaw_out;
 extern float pid_roll_setpoint, pid_pitch_setpoint, pid_yaw_setpoint;
 extern float roll, pitch, yaw;
+extern Timer t;
 
+/*
+ * PID - A PID controller implementation.
+ *
+ * Code used with permission from Brett Beauregard. For more information,
+ * please see the link below:
+ *
+ * http://brettbeauregard.com/blog/2011/04/improving-the-beginners-pid-introduction/
+ */
 class PID
 {
 private:
@@ -62,7 +71,7 @@ public:
         
 };
 
-void PIDInit(void);
+void PIDInit(int SampleTime);
 void PIDUpdate(void);
 void PIDCompute(void);
 

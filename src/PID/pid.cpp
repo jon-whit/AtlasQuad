@@ -2,6 +2,8 @@
 #include "pid.h"
 
 PID roll_controller(&pid_roll_in, &pid_roll_out, &pid_roll_setpoint, 5.0, 0.0, 0.0, REVERSE);
+PID pitch_controller(&pid_pitch_in, &pid_pitch_out, &pid_pitch_setpoint, 5.0, 0.0, 0.0, REVERSE);
+PID yaw_controller(&pid_yaw_in, &pid_yaw_out, &pid_yaw_setpoint, 5.0, 0.0, 0.0, DIRECT);
 
 PID::PID(float* Input, float* Output, float* Setpoint,
          float Kp, float Ki, float Kd, int ControllerDirection)
@@ -20,13 +22,13 @@ PID::PID(float* Input, float* Output, float* Setpoint,
     PID::SetControllerDirection(ControllerDirection);
     PID::SetTunings(Kp, Ki, Kd);
 
-    lastTime = time(NULL)-SampleTime;
+    lastTime = t.read_ms()-SampleTime;
 }
 
 bool PID::Compute()
 {
    if(!inAuto) return false;
-   unsigned long now = time(NULL);
+   unsigned long now = t.read_ms();
    unsigned long timeChange = (now - lastTime);
    if(timeChange>=SampleTime)
    {
@@ -135,9 +137,22 @@ float PID::GetKd(){ return  dispKd;}
 int PID::GetMode(){ return  inAuto ? AUTOMATIC : MANUAL;}
 int PID::GetDirection(){ return controllerDirection;}
 
-void PIDInit(void)
+void PIDInit(int SampleTime)
 {
+    // Initialize the roll controller
+    roll_controller.SetOutputLimits(PID_OUT_MIN, PID_OUT_MAX);
+    roll_controller.SetMode(AUTOMATIC);
+    roll_controller.SetSampleTime(SampleTime); // in ms
     
+    // Initialize the pitch controller
+    pitch_controller.SetOutputLimits(PID_OUT_MIN, PID_OUT_MAX);
+    pitch_controller.SetMode(AUTOMATIC);
+    pitch_controller.SetSampleTime(SampleTime); // in ms
+    
+    // Initialize the yaw controller
+    yaw_controller.SetOutputLimits(PID_OUT_MIN, PID_OUT_MAX);
+    yaw_controller.SetMode(AUTOMATIC);
+    yaw_controller.SetSampleTime(SampleTime); // in ms
 }
 
 void PIDUpdate(void)
@@ -149,5 +164,7 @@ void PIDUpdate(void)
 
 void PIDCompute(void)
 {
-
+    roll_controller.Compute();
+    pitch_controller.Compute();
+    yaw_controller.Compute();
 }

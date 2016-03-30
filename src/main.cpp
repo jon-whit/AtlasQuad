@@ -44,8 +44,10 @@ int mspeed2 = MOTOR_MIN, mspeed4 = MOTOR_MIN; // Motors along the y-axis
 
 void InitIMU(void)
 {
-    // Configure the Low-pass filter mode on the ITG3200 gyro
+    // Set the internal sample rate to 1kHz and set the sample
+    // time to 200Hz (5ms)
     gyro.setLpBandwidth(LPFBW_188HZ);
+    gyro.setSampleRateDivider(4);
     
     // Put the ADXL345 into standby mode to configure the device
     accl.setPowerControl(0x00);

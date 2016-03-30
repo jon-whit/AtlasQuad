@@ -13,7 +13,7 @@
 #if !defined(__DEBUG_H_)
 #define __DEBUG_H_
 
-#include "config.h"
+#include "src/config.h"
 
 #if defined(ENABLE_LOGGING)
 

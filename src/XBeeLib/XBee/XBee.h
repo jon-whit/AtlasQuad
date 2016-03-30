@@ -14,7 +14,7 @@
 #define __DIGI_RADIO_H_
 
 #include <stdint.h>
-#include "config.h"
+#include "src/config.h"
 #include "Utils/Debug.h"
 #include "Frames/AtCmdFrame.h"
 #include "FrameHandlers/FrameHandler.h"

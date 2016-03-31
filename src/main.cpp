@@ -14,6 +14,10 @@ ITG3200 gyro(PB_9, PB_8);
 ADXL345 accl(PB_9, PB_8);
 XBeeUART comm((uint16_t) 0); // 16-bit remote address of 1
 
+Timer t;
+uint16_t currentTime;
+uint16_t previousTime;
+
 const float acclAlpha = 0.5;
 const float gyroAlpha = 0.98;
 const int gyroOffsetX = 0;
@@ -75,10 +79,11 @@ void GetAngleMeasurements()
     // Roll & Pitch Equations
     acclRoll  = (atan2(-fYg, fZg)*180.0)/M_PI;
     acclPitch = (atan2(fXg, sqrt(fYg*fYg + fZg*fZg))*180.0)/M_PI;
-    
-    // TODO: Fill this out gyroRoll = ;
-    // TODO: Fill this out gyroPitch = ;    
-    
+    currentTime = t.read_us();
+    gyroRoll += (currentTime - previousTime) * (gyroRoll/14.375);
+    gyroPitch += (currentTime - previousTime) * (gyroPitch/14.375);
+    previousTime = currentTime;
+
     // Complementary filter
     roll  = gyroAlpha*gyroRoll  + (1-gyroAlpha)*acclRoll;
     pitch = gyroAlpha*gyroPitch + (1-gyroAlpha)*acclPitch;
@@ -102,6 +107,8 @@ void ControlUpdate()
 
 int main()
 {
+    t.start();
+    previousTime = 0;
     pc.printf("Initializing Motors...\r\n");
     InitMotors();
     
@@ -115,7 +122,7 @@ int main()
     comm.init();
 
     pc.printf("Arming Motors...\r\n");
-    ArmMotors();
+    ''();
     
     while (1)
     {   

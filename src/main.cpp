@@ -15,8 +15,8 @@ ADXL345 accl(PB_9, PB_8);
 XBeeUART comm((uint16_t) 0); // 16-bit remote address of 1
 
 Timer t;
-uint16_t currentTime;
-uint16_t previousTime;
+uint32_t currentTime;
+uint32_t previousTime;
 
 const float acclAlpha = 0.5;
 const float gyroAlpha = 0.98;
@@ -82,7 +82,6 @@ void GetAngleMeasurements()
 
     gyroRoll += (currentTime - previousTime) * (gyroRoll/14.375);
     gyroPitch += (currentTime - previousTime) * (gyroPitch/14.375);
-
 
     // Complementary filter
     roll  = gyroAlpha*gyroRoll  + (1-gyroAlpha)*acclRoll;

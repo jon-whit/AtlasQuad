@@ -79,10 +79,10 @@ void GetAngleMeasurements()
     // Roll & Pitch Equations
     acclRoll  = (atan2(-fYg, fZg)*180.0)/M_PI;
     acclPitch = (atan2(fXg, sqrt(fYg*fYg + fZg*fZg))*180.0)/M_PI;
-    currentTime = t.read_us();
+
     gyroRoll += (currentTime - previousTime) * (gyroRoll/14.375);
     gyroPitch += (currentTime - previousTime) * (gyroPitch/14.375);
-    previousTime = currentTime;
+
 
     // Complementary filter
     roll  = gyroAlpha*gyroRoll  + (1-gyroAlpha)*acclRoll;
@@ -122,14 +122,15 @@ int main()
     comm.init();
 
     pc.printf("Arming Motors...\r\n");
-    ''();
+    ArmMotors();
     
     while (1)
     {   
         comm.process_frames();
+        currentTime = t.read_us();
         GetAngleMeasurements();
         ControlUpdate();  
-
+        previousTime = currentTime;
         // maybe place this in its own thread/interrupt-driven callback
         uint8_t message = comm.get_message_byte();
         if(message != 0) {

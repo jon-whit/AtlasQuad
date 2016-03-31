@@ -1,18 +1,19 @@
 #include "mbed.h"
 #include "motors.h"
+#include "config.h"
 #include "ITG3200.h"
 #include "ADXL345.h"
+#include "xbeeuart.h"
 #include "pid.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
 
-#define SAMPLE_TIME 0.5 // (ms) --> 2kHz
-
 Serial pc(SERIAL_TX, SERIAL_RX); // TX, RX
-ITG3200 gyro(PB_9, PB_8);
-ADXL345 accl(PB_9, PB_8);
+ITG3200 gyro(IMU_SDA, IMU_SCL);
+ADXL345 accl(IMU_SDA, IMU_SCL);
+XBeeUART comm((uint16_t) 0); // 16-bit remote address of 1
 
 const float acclAlpha = 0.5;
 const float gyroAlpha = 0.98;
@@ -49,17 +50,17 @@ int mspeed2 = MOTOR_MIN, mspeed4 = MOTOR_MIN; // Motors along the y-axis
 
 void InitIMU(void)
 {
-    // Set the internal sample rate to 1kHz and set the sample
-    // time to 200Hz (5ms)
-    gyro.setLpBandwidth(LPFBW_188HZ);
-    gyro.setSampleRateDivider(4);
+    // Set the internal sample rate to 8kHz and set the sample
+    // time to 2kHz (500us)
+    gyro.setLpBandwidth(LPFBW_256HZ);
+    gyro.setSampleRateDivider(3);
     
     // Put the ADXL345 into standby mode to configure the device
     accl.setPowerControl(0x00);
     
-    // Configure the ADXL345 in 10-bit resolution, +/-16g range, 200 Hz data rate
+    // Configure the ADXL345 in 10-bit resolution, +/-16g range, 1.6kHz data rate
     accl.setDataFormatControl(0x03);
-    accl.setDataRate(ADXL345_200HZ);
+    accl.setDataRate(ADXL345_1600HZ);
     
     // Start ADXL345 measurement mode
     accl.setPowerControl(0x08);
@@ -67,7 +68,7 @@ void InitIMU(void)
 
 void GetAngleMeasurements()
 {
-    if (t.read_ms() - tprev >= SAMPLE_TIME)
+    if (t.read_us() - tprev >= IMU_SAMPLE_TIME)
     {
         // Get the forces in X, Y, and Z
         fG = accl.getAccelG();
@@ -84,13 +85,15 @@ void GetAngleMeasurements()
         // Calculate the roll and pitch angles from the gyro measurements
         float groll = (float) gyro.getGyroX() / 14.375;
         float gpitch = (float) gyro.getGyroY() / 14.375;
-        uint32_t dt = t.read_ms() - tprev;
+        uint32_t dt = t.read_us() - tprev;
         gyroRoll += groll * dt;
         gyroPitch += gpitch * dt;
 
         // Complementary filter
         roll  = gyroAlpha*gyroRoll  + (1-gyroAlpha)*acclRoll;
         pitch = gyroAlpha*gyroPitch + (1-gyroAlpha)*acclPitch;
+        
+        tprev = t.read_us();
     }
 }
 
@@ -124,14 +127,22 @@ int main()
     pc.printf("Initializing PID Controllers...\r\n");
     PIDInit(1); // Initialize the PID controllers with a 1kHz sampling rate
     
+    pc.printf("Initializing Communications...\r\n");
+    comm.init();
+
     pc.printf("Arming Motors...\r\n");
     ArmMotors();
     
     while (1)
     {   
+        comm.process_frames();
         GetAngleMeasurements();
-        ControlUpdate();
-        
-        tprev = t.read_ms();
+        ControlUpdate();  
+
+        // maybe place this in its own thread/interrupt-driven callback
+        uint8_t message = comm.get_message_byte();
+        if(message != 0) {
+            pc.printf("Received byte %x\r\n", message);
+        }
     }
 }

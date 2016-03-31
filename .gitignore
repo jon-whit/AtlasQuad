@@ -180,3 +180,13 @@ local.properties
 # Simulink Code Generation
 slprj/
 
+
+*.iml
+*.idea
+*.ipr
+*.iws
+atlassian-ide-plugin.xml
+.idea/workspace.xml
+
+.DS_Store
+

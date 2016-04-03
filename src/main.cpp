@@ -22,7 +22,7 @@ const int gyroOffsetY = 0;
 const int gyroOffsetZ = 0;
 
 Timer t; // global timer
-uint32_t tprev;
+uint32_t tprev = 0;
 
 uint16_t throttle = 0;
 

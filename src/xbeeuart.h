@@ -15,9 +15,37 @@
 #include "stdint.h"
 #include "XBeeLib.h"
 
+/**
+ * Motor/movement mode definitions - should this be moved to config.h?
+ *  These values could then be used elsewhere
+ */
+#define POS_X     0
+#define POS_Y     1
+#define POS_Z     2
+#define ROT_X     3
+#define ROT_Y     4
+#define ROT_Z     5
+#define GET_POS_X 6
+#define GET_POS_Y 7
+#define GET_POS_Z 8
+#define GET_ROT_X 9
+#define GET_ROT_Y 10
+#define GET_ROT_Z 11
+#define ESC_1     1
+#define ESC_2     2
+#define ESC_3     3
+#define ESC_4     4
+#define IMU_RST   0
+
+typedef void     (*UARTBasicCallback_t)();
+typedef uint32_t (*UARTMoveCallback_t)(uint8_t, uint32_t);
+typedef void     (*UARTMotorCallback_t)(uint8_t, uint8_t);
+typedef uint32_t (*UARTIMUCallback_t)(uint8_t);
+
 class XBeeUART
 {
 public:
+
     /**
      * XBee UART constructor.
      *
@@ -29,6 +57,12 @@ public:
      * Initialize XBee module
      */
     void init();
+
+    /**
+     * Register callbacks to be used whenever a message is received. The callbacks are run
+     * as soon as a message is received, depending on the message content and/or command.
+     */
+    uint8_t register_callbacks(UARTBasicCallback_t stop, UARTBasicCallback_t heartbeat, UARTMoveCallback_t move, UARTMotorCallback_t motor, UARTIMUCallback_t imu);
 
     /**
      * Get most recent message (first byte, anyway) received by the radio.
@@ -64,6 +98,11 @@ private:
     XBeeLib::RemoteXBee802 *remote_device_;
     static void receive_cb_(const XBeeLib::RemoteXBee802& remote, bool broadcast, const uint8_t *const data, uint16_t len);
     static uint8_t recent_msg_byte_;
+    static UARTBasicCallback_t  stopcallback_;
+    static UARTBasicCallback_t  heartbeatcallback_;
+    static UARTMoveCallback_t  movecallback_;
+    static UARTMotorCallback_t motorcallback_;
+    static UARTIMUCallback_t   imucallback_;
 };
 
 #endif

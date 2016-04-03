@@ -113,6 +113,37 @@ void ControlUpdate()
     UpdateMotors(&mspeed1, &mspeed2, &mspeed3, &mspeed4);
 }
 
+/** Dummy callback functions - fill these out with correct commands/function calls later **/
+void StopMotors() {
+    pc.printf("stop quadcopter\r\n");
+
+    // add code to stop motors in an emergency
+}
+
+void Heartbeat() {
+    comm.send_data((uint8_t *) "OK");
+}
+
+void SetMotor(uint8_t motor, uint8_t value) {
+    pc.printf("set motor %d to %d\r\n", motor, value);
+
+    // add code to change individual motor/ESC
+}
+
+uint32_t SetPositionRotation(uint8_t mode, uint32_t value) {
+    pc.printf("move %d %d\r\n", mode, value);
+
+    // parse mode (X/Y/Z position/rotation set/get)
+    return 0;
+}
+
+uint32_t SetIMU(uint8_t mode) {
+    pc.printf("imu %d\r\n", mode);
+
+    // get/set IMU values
+    return 0;
+}
+
 int main()
 {
     // Start the global timer
@@ -129,6 +160,7 @@ int main()
     
     pc.printf("Initializing Communications...\r\n");
     comm.init();
+    comm.register_callbacks(&StopMotors, &Heartbeat, &SetPositionRotation, &SetMotor, &SetIMU);
 
     pc.printf("Arming Motors...\r\n");
     ArmMotors();
@@ -138,11 +170,5 @@ int main()
         comm.process_frames();
         GetAngleMeasurements();
         ControlUpdate();  
-
-        // maybe place this in its own thread/interrupt-driven callback
-        uint8_t message = comm.get_message_byte();
-        if(message != 0) {
-            pc.printf("Received byte %x\r\n", message);
-        }
     }
 }

@@ -21,6 +21,7 @@ const int gyroOffsetX;
 const int gyroOffsetY;
 const int gyroOffsetZ;
 
+Ticker commticker;
 Timer t; // global timer
 uint32_t tprev = 0;
 
@@ -145,7 +146,24 @@ void SetMotor(uint8_t motor, uint8_t value) {
         pc.printf("set motor %d to %d\r\n", motor, value);
     #endif
 
-    // add code to change individual motor/ESC
+    // Change each individual motor/ESC, or update throttle
+    switch(motor) {
+        case ESC_1:
+            mspeed1 = (int) value;
+            break;
+        case ESC_2:
+            mspeed2 = (int) value;
+            break;
+        case ESC_3:
+            mspeed2 = (int) value;
+            break;
+        case ESC_4:
+            mspeed2 = (int) value;
+            break;
+        case THROTTLE:
+            throttle = value;
+            break;
+    }
 }
 
 uint32_t SetPositionRotation(uint8_t mode, uint32_t value) {
@@ -193,6 +211,7 @@ int main()
     #endif
     comm.init();
     comm.register_callbacks(&StopMotors, &Heartbeat, &SetPositionRotation, &SetMotor, &SetIMU);
+    commticker.attach(&comm, &XBeeUART::process_frames, 0.1); // process received frames at 10 Hz
 
     #ifdef DEBUG
         pc.printf("Arming Motors...\r\n");
@@ -201,7 +220,6 @@ int main()
     
     while (1)
     {   
-        comm.process_frames();
         GetAngleMeasurements();
         ControlUpdate();  
     }

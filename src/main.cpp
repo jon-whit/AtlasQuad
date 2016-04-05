@@ -50,10 +50,10 @@ int mspeed2 = MOTOR_MIN, mspeed4 = MOTOR_MIN; // Motors along the y-axis
 
 void InitIMU(void)
 {
-    // Set the internal sample rate to 8kHz and set the sample
-    // time to 2kHz (500us)
-    gyro.setLpBandwidth(LPFBW_256HZ);
-    gyro.setSampleRateDivider(3);
+    // Set the internal sample rate to 1kHz and set the sample
+    // time to 1kHz (1ms)
+    gyro.setLpBandwidth(LPFBW_188HZ);
+    gyro.setSampleRateDivider(0);
     
     // Put the ADXL345 into standby mode to configure the device
     accl.setPowerControl(0x00);
@@ -156,7 +156,7 @@ int main()
     InitIMU();
     
     pc.printf("Initializing PID Controllers...\r\n");
-    PIDInit(1); // Initialize the PID controllers with a 1kHz sampling rate
+    PIDInit(10); // Initialize the PID controllers with a 100Hz sampling rate
     
     pc.printf("Initializing Communications...\r\n");
     comm.init();

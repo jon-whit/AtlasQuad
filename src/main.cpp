@@ -17,9 +17,9 @@ XBeeUART comm((uint16_t) 0); // 16-bit remote address of 1
 
 const float acclAlpha = 0.5;
 const float gyroAlpha = 0.98;
-const int gyroOffsetX = 0;
-const int gyroOffsetY = 0;
-const int gyroOffsetZ = 0;
+const int gyroOffsetX;
+const int gyroOffsetY;
+const int gyroOffsetZ;
 
 Timer t; // global timer
 uint32_t tprev = 0;
@@ -55,15 +55,27 @@ void InitIMU(void)
     gyro.setLpBandwidth(LPFBW_188HZ);
     gyro.setSampleRateDivider(0);
     
+    // Set offset for gyro
+    gyroOffsetX = gyro.getGyroX();
+    gyroOffsetY = gyro.getGyroY();
+    gyroOffsetZ = gyro.getGyroZ();
+    
     // Put the ADXL345 into standby mode to configure the device
     accl.setPowerControl(0x00);
     
     // Configure the ADXL345 in 10-bit resolution, +/-16g range, 1.6kHz data rate
     accl.setDataFormatControl(0x03);
     accl.setDataRate(ADXL345_1600HZ);
-    
+
     // Start ADXL345 measurement mode
     accl.setPowerControl(0x08);
+
+    // Set offset for accl
+    int16_t readings[3] = {-1, -1, -1};
+    getRawOutput(readings);
+    setOffset(ADXL345_X, (uint8_t)readings[0]);
+    setOffset(ADXL345_Y, (uint8_t)readings[1]);
+    setOffset(ADXL345_Z, (uint8_t)readings[2]);
 }
 
 void GetAngleMeasurements()
@@ -83,8 +95,8 @@ void GetAngleMeasurements()
         acclPitch = (atan2(fXg, sqrt(fYg*fYg + fZg*fZg))*180.0)/M_PI;
 
         // Calculate the roll and pitch angles from the gyro measurements
-        float groll = (float) gyro.getGyroX() / 14.375;
-        float gpitch = (float) gyro.getGyroY() / 14.375;
+        float groll = (float) (gyro.getGyroX() - gyroOffsetX) / 14.375;
+        float gpitch = (float) (gyro.getGyroY() - gyroOffsetY) / 14.375;
         uint32_t dt = t.read_us() - tprev;
         gyroRoll += groll * dt;
         gyroPitch += gpitch * dt;

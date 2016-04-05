@@ -19,22 +19,17 @@
  * Motor/movement mode definitions - should this be moved to config.h?
  *  These values could then be used elsewhere
  */
-#define POS_X     0
-#define POS_Y     1
-#define POS_Z     2
-#define ROT_X     3
-#define ROT_Y     4
-#define ROT_Z     5
-#define GET_POS_X 6
-#define GET_POS_Y 7
-#define GET_POS_Z 8
-#define GET_ROT_X 9
-#define GET_ROT_Y 10
-#define GET_ROT_Z 11
+#define ROT_X     0
+#define ROT_Y     1
+#define ROT_Z     2
+#define GET_ROT_X 3
+#define GET_ROT_Y 4
+#define GET_ROT_Z 5
 #define ESC_1     1
 #define ESC_2     2
 #define ESC_3     3
 #define ESC_4     4
+#define THROTTLE  5
 #define IMU_RST   0
 
 typedef void     (*UARTBasicCallback_t)();

@@ -29,11 +29,11 @@ All return values are sent back as data (no command prefix), as integers or byte
 ### Motor commands
 Note that all of these override position/rotation commands.
 
- * `M1 #` Set ESC/Motor 1 to a certain value. Data is an 8-bit unsigned integer.
- * `M2 #` Set ESC/Motor 2 to a certain value. Data is an 8-bit unsigned integer.
- * `M3 #` Set ESC/Motor 3 to a certain value. Data is an 8-bit unsigned integer.
- * `M4 #` Set ESC/Motor 4 to a certain value. Data is an 8-bit unsigned integer.
- * `TH #` Set throttle for all four motors. Data is an 8-bit unsigned integer.
+ * `M1 #` Set ESC/Motor 1 to a certain value. Data is a 16-bit unsigned integer.
+ * `M2 #` Set ESC/Motor 2 to a certain value. Data is a 16-bit unsigned integer.
+ * `M3 #` Set ESC/Motor 3 to a certain value. Data is a 16-bit unsigned integer.
+ * `M4 #` Set ESC/Motor 4 to a certain value. Data is a 16-bit unsigned integer.
+ * `TH #` Set throttle for all four motors. Data is a 16-bit unsigned integer.
 
 ### IMU commands
 For retrieving positions and rotations, see the "Position/Rotation commands" section.

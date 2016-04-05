@@ -34,7 +34,7 @@
 
 typedef void     (*UARTBasicCallback_t)();
 typedef uint32_t (*UARTMoveCallback_t)(uint8_t, uint32_t);
-typedef void     (*UARTMotorCallback_t)(uint8_t, uint8_t);
+typedef void     (*UARTMotorCallback_t)(uint8_t, uint16_t);
 typedef uint32_t (*UARTIMUCallback_t)(uint8_t);
 
 class XBeeUART

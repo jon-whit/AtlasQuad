@@ -20,9 +20,6 @@ const float gyroAlpha = 0.98;
 const int gyroOffsetX;
 const int gyroOffsetY;
 const int gyroOffsetZ;
-const int accelOffsetX;
-const int accelOffsetY;
-const int accelOffsetZ;
 
 Timer t; // global timer
 uint32_t tprev = 0;
@@ -58,7 +55,7 @@ void InitIMU(void)
     gyro.setLpBandwidth(LPFBW_256HZ);
     gyro.setSampleRateDivider(3);
     
-    //set offset for gyro
+    // Set offset for gyro
     gyroOffsetX = gyro.getGyroX();
     gyroOffsetY = gyro.getGyroY();
     gyroOffsetZ = gyro.getGyroZ();
@@ -69,15 +66,16 @@ void InitIMU(void)
     // Configure the ADXL345 in 10-bit resolution, +/-16g range, 1.6kHz data rate
     accl.setDataFormatControl(0x03);
     accl.setDataRate(ADXL345_1600HZ);
-    
-    //set offset for accl
+
+    // Start ADXL345 measurement mode
+    accl.setPowerControl(0x08);
+
+    // Set offset for accl
     int16_t readings[3] = {-1, -1, -1};
     getRawOutput(readings);
     setOffset(ADXL345_X, (uint8_t)readings[0]);
     setOffset(ADXL345_Y, (uint8_t)readings[1]);
     setOffset(ADXL345_Z, (uint8_t)readings[2]);
-    // Start ADXL345 measurement mode
-    accl.setPowerControl(0x08);
 }
 
 void GetAngleMeasurements()

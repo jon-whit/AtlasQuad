@@ -1,9 +1,10 @@
 #include "motors.h"
+#include "../config.h"
 
-PwmOut esc1(D7); // PWM 1/1
-PwmOut esc2(D8); // PWM 1/2
-PwmOut esc3(D5); // PWM 3/1
-PwmOut esc4(D4); // PWM 3/2
+PwmOut esc1(ESC1_PIN); // PWM 1/1
+PwmOut esc2(ESC2_PIN); // PWM 1/2
+PwmOut esc3(ESC3_PIN); // PWM 3/1
+PwmOut esc4(ESC4_PIN); // PWM 3/2
 
 void InitMotors(void)
 {

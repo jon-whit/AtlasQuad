@@ -115,7 +115,10 @@ void ControlUpdate()
 
 /** Dummy callback functions - fill these out with correct commands/function calls later **/
 void StopMotors() {
-    pc.printf("stop quadcopter\r\n");
+    
+    #ifdef DEBUG
+        pc.printf("stop quadcopter\r\n");
+    #endif
 
     // add code to stop motors in an emergency
 }
@@ -125,20 +128,29 @@ void Heartbeat() {
 }
 
 void SetMotor(uint8_t motor, uint8_t value) {
-    pc.printf("set motor %d to %d\r\n", motor, value);
+    
+    #ifdef DEBUG
+        pc.printf("set motor %d to %d\r\n", motor, value);
+    #endif
 
     // add code to change individual motor/ESC
 }
 
 uint32_t SetPositionRotation(uint8_t mode, uint32_t value) {
-    pc.printf("move %d %d\r\n", mode, value);
+    
+    #ifdef DEBUG
+        pc.printf("move %d %d\r\n", mode, value);
+    #endif
 
     // parse mode (X/Y/Z position/rotation set/get)
     return 0;
 }
 
 uint32_t SetIMU(uint8_t mode) {
-    pc.printf("imu %d\r\n", mode);
+    
+    #ifdef DEBUG
+        pc.printf("imu %d\r\n", mode);
+    #endif
 
     // get/set IMU values
     return 0;
@@ -149,20 +161,30 @@ int main()
     // Start the global timer
     t.start();
     
-    pc.printf("Initializing Motors...\r\n");
+    #ifdef DEBUG 
+        pc.printf("Initializing Motors...\r\n");
+    #endif
     InitMotors();
     
-    pc.printf("Initializing IMU...\r\n");
+    #ifdef DEBUG 
+        pc.printf("Initializing IMU...\r\n");
+    #endif
     InitIMU();
     
-    pc.printf("Initializing PID Controllers...\r\n");
+    #ifdef DEBUG
+        pc.printf("Initializing PID Controllers...\r\n");
+    #endif
     PIDInit(10); // Initialize the PID controllers with a 100Hz sampling rate
     
-    pc.printf("Initializing Communications...\r\n");
+    #ifdef DEBUG
+        pc.printf("Initializing Communications...\r\n");
+    #endif
     comm.init();
     comm.register_callbacks(&StopMotors, &Heartbeat, &SetPositionRotation, &SetMotor, &SetIMU);
 
-    pc.printf("Arming Motors...\r\n");
+    #ifdef DEBUG
+        pc.printf("Arming Motors...\r\n");
+    #endif
     ArmMotors();
     
     while (1)

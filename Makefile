@@ -29,6 +29,7 @@ LD_FLAGS = $(CPU) -Wl,--gc-sections --specs=nano.specs -Wl,--wrap,main -Wl,-Map=
 LD_SYS_LIBS = -lstdc++ -lsupc++ -lm -lc -lgcc -lnosys
 
 
+DEBUG ?= 0
 ifeq ($(DEBUG), 1)
   CC_FLAGS += -DDEBUG -O0
 else
@@ -38,7 +39,6 @@ endif
 .PHONY: all clean lst size
 
 all: $(PROJECT).bin $(PROJECT).hex size
-
 
 clean:
 	rm -f $(PROJECT).bin $(PROJECT).elf $(PROJECT).hex $(PROJECT).map $(PROJECT).lst $(OBJECTS) $(DEPS)

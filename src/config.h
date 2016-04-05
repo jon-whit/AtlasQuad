@@ -21,3 +21,9 @@
 #define IMU_SDA          PB_9
 #define IMU_SCL          PB_8
 #define IMU_SAMPLE_TIME  500 // in us
+
+// ESC pin definitions
+#define ESC1_PIN    D7
+#define ESC2_PIN    D8
+#define ESC3_PIN    D5
+#define ESC4_PIN    D4

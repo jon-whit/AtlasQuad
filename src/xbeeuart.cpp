@@ -117,6 +117,8 @@ void XBeeUART::receive_cb_(const RemoteXBee802& remote, bool broadcast, const ui
                 motorcallback_(ESC_3, value);
             } else if(!strncmp("M4", command, 2)) {
                 motorcallback_(ESC_4, value);
+            } else if(!strncmp("AT", command, 2)) {
+                motorcallback_(ESC_AUTO, value);
             } else if(!strncmp("TH", command, 2)) {
                 motorcallback_(THROTTLE, value);
             }

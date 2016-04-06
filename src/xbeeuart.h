@@ -30,6 +30,7 @@
 #define ESC_3     3
 #define ESC_4     4
 #define THROTTLE  5
+#define ESC_AUTO  6
 #define IMU_RST   0
 
 typedef void     (*UARTBasicCallback_t)();

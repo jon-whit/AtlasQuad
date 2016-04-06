@@ -85,8 +85,8 @@ void GetAngleMeasurements()
         // Calculate the roll and pitch angles from the gyro measurements
         float groll = (float) gyro.getGyroX() / 14.375;
         float gpitch = (float) gyro.getGyroY() / 14.375;
-        uint32_t tCurr = t.read_us();
-        uint32_t dt = tCurr - tprev;
+        uint32_t tcurr = t.read_us();
+        uint32_t dt = tcurr - tprev;
         gyroRoll += groll * dt;
         gyroPitch += gpitch * dt;
 
@@ -94,7 +94,7 @@ void GetAngleMeasurements()
         roll  = gyroAlpha*gyroRoll  + (1-gyroAlpha)*acclRoll;
         pitch = gyroAlpha*gyroPitch + (1-gyroAlpha)*acclPitch;
         
-        tprev = tCurr;
+        tprev = tcurr;
     }
 }
 

@@ -55,19 +55,20 @@ void InitIMU(void)
     gyro.setLpBandwidth(LPFBW_188HZ);
     gyro.setSampleRateDivider(0);
     int gyroOffsetX_temp = 0;
-	int gyroOffsetY_temp = 0;
-	int gyroOffsetZ_temp = 0;
+    int gyroOffsetY_temp = 0;
+    int gyroOffsetZ_temp = 0;
     
-	// Set offset for gyro
-	for (int i=0; i<250; i++)
-	{
-	    gyroOffsetX_temp += gyro.getGyroX();
-		gyroOffsetY_temp += gyro.getGyroY();
-		gyroOffsetZ_temp += gyro.getGyroZ();
-	}
+    // Set offset for gyro
+    for (int i=0; i<250; i++)
+    {
+    	gyroOffsetX_temp += gyro.getGyroX();
+    	gyroOffsetY_temp += gyro.getGyroY();
+    	gyroOffsetZ_temp += gyro.getGyroZ();
+    }
+    
     gyroOffsetX = gyroOffsetX_temp/250;
-	gyroOffsetY = gyroOffsetY_temp/250;
-	gyroOffsetZ = gyroOffsetZ_temp/250;
+    gyroOffsetY = gyroOffsetY_temp/250;
+    gyroOffsetZ = gyroOffsetZ_temp/250;
 	
     // Put the ADXL345 into standby mode to configure the device
     accl.setPowerControl(0x00);
@@ -80,17 +81,19 @@ void InitIMU(void)
     accl.setPowerControl(0x08);
 
     // Set offset for accl
-	uint8_t acclX = 0;
-	uint8_t acclY = 0;
-	uint8_t acclZ = 0;
-	for (int i=0; i<250; i++)
-	{
-		int16_t readings[3] = {-1, -1, -1};
-		getRawOutput(readings);
-		acclX += (uint8_t)readings[0]);
-		acclY += (uint8_t)readings[1]);
-		acclZ += (uint8_t)readings[2]);		
-	}
+    uint8_t acclX = 0;
+    uint8_t acclY = 0;
+    uint8_t acclZ = 0;
+    
+    for (int i=0; i<250; i++)
+    {
+    	int16_t readings[3] = {-1, -1, -1};
+    	getRawOutput(readings);
+    	acclX += (uint8_t)readings[0]);
+    	acclY += (uint8_t)readings[1]);
+    	acclZ += (uint8_t)readings[2]);
+    }
+    
     setOffset(ADXL345_X, acclX/250);
     setOffset(ADXL345_Y, acclY/250);
     setOffset(ADXL345_Z, acclZ/250);

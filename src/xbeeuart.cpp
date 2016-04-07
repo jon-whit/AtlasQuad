@@ -97,24 +97,12 @@ void XBeeUART::receive_cb_(const RemoteXBee802& remote, bool broadcast, const ui
             char value_string[11];
             memcpy(value_string, &data[2], len - 2); // copy characters 2 through len
             uint32_t value = atoi(value_string);
-            if(!strncmp("XP", command, 2)) {
-                movecallback_(POS_X, value);
-            } else if(!strncmp("YP", command, 2)) {
-                movecallback_(POS_Y, value);
-            } else if(!strncmp("ZP", command, 2)) {
-                movecallback_(POS_Z, value);
-            } else if(!strncmp("XR", command, 2)) {
+            if(!strncmp("XR", command, 2)) {
                 movecallback_(ROT_X, value);
             } else if(!strncmp("YR", command, 2)) {
                 movecallback_(ROT_Y, value);
             } else if(!strncmp("ZR", command, 2)) {
                 movecallback_(ROT_Z, value);
-            } else if(!strncmp("PX", command, 2)) {
-                movecallback_(GET_POS_X, value);
-            } else if(!strncmp("PY", command, 2)) {
-                movecallback_(GET_POS_Y, value);
-            } else if(!strncmp("PZ", command, 2)) {
-                movecallback_(GET_POS_Z, value);
             } else if(!strncmp("RX", command, 2)) {
                 movecallback_(GET_ROT_X, value);
             } else if(!strncmp("RY", command, 2)) {
@@ -129,6 +117,10 @@ void XBeeUART::receive_cb_(const RemoteXBee802& remote, bool broadcast, const ui
                 motorcallback_(ESC_3, value);
             } else if(!strncmp("M4", command, 2)) {
                 motorcallback_(ESC_4, value);
+            } else if(!strncmp("AT", command, 2)) {
+                motorcallback_(ESC_AUTO, value);
+            } else if(!strncmp("TH", command, 2)) {
+                motorcallback_(THROTTLE, value);
             }
         }
     }

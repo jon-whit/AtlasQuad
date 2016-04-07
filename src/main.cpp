@@ -17,10 +17,11 @@ XBeeUART comm((uint16_t) 0); // 16-bit remote address of 1
 
 const float acclAlpha = 0.5;
 const float gyroAlpha = 0.98;
-const int gyroOffsetX;
-const int gyroOffsetY;
-const int gyroOffsetZ;
+int gyroOffsetX;
+int gyroOffsetY;
+int gyroOffsetZ;
 
+Ticker commticker;
 Timer t; // global timer
 uint32_t tprev = 0;
 
@@ -41,6 +42,11 @@ float pitch, roll, yaw = 0.0;
 float pid_roll_in,   pid_roll_out,   pid_roll_setpoint = 0.0;
 float pid_pitch_in,  pid_pitch_out,  pid_pitch_setpoint = 0.0;
 float pid_yaw_in,  pid_yaw_out,  pid_yaw_setpoint = 0.0;
+
+// Motor control - automatic (PID) or manual (comm)
+#define AUTOMATIC 1
+#define MANUAL 0
+bool motormode = AUTOMATIC;
 
 int mspeed1 = MOTOR_MIN, mspeed3 = MOTOR_MIN; // Motors along the x-axis
 //=> Changing their speeds will affect the pitch
@@ -72,10 +78,10 @@ void InitIMU(void)
 
     // Set offset for accl
     int16_t readings[3] = {-1, -1, -1};
-    getRawOutput(readings);
-    setOffset(ADXL345_X, (uint8_t)readings[0]);
-    setOffset(ADXL345_Y, (uint8_t)readings[1]);
-    setOffset(ADXL345_Z, (uint8_t)readings[2]);
+    accl.getRawOutput(readings);
+    accl.setOffset(ADXL345_X, (uint8_t)readings[0]);
+    accl.setOffset(ADXL345_Y, (uint8_t)readings[1]);
+    accl.setOffset(ADXL345_Z, (uint8_t)readings[2]);
 }
 
 void GetAngleMeasurements()
@@ -116,11 +122,12 @@ void ControlUpdate()
     PIDCompute();
     
     // Calculate the new motor speeds
-    //mspeed1 = throttle + pid_pitch_out;
-    mspeed2 = throttle + pid_roll_out;
-    //mspeed3 = throttle - pid_pitch_out;
-    mspeed4 = throttle - pid_roll_out;
-    
+    if(motormode == AUTOMATIC) {
+        //mspeed1 = throttle + pid_pitch_out;
+        mspeed2 = throttle + pid_roll_out;
+        //mspeed3 = throttle - pid_pitch_out;
+        mspeed4 = throttle - pid_roll_out;
+    }
     // Update the motor speeds
     UpdateMotors(&mspeed1, &mspeed2, &mspeed3, &mspeed4);
 }
@@ -133,19 +140,49 @@ void StopMotors() {
     #endif
 
     // add code to stop motors in an emergency
+    motormode = MANUAL;
+    mspeed1 = MOTOR_MIN;
+    mspeed2 = MOTOR_MIN;
+    mspeed3 = MOTOR_MIN;
+    mspeed4 = MOTOR_MIN;
+    UpdateMotors(&mspeed1, &mspeed2, &mspeed3, &mspeed4);
 }
 
 void Heartbeat() {
     comm.send_data((uint8_t *) "OK");
 }
 
-void SetMotor(uint8_t motor, uint8_t value) {
+void SetMotor(uint8_t motor, uint16_t value) {
     
     #ifdef DEBUG
         pc.printf("set motor %d to %d\r\n", motor, value);
     #endif
 
-    // add code to change individual motor/ESC
+    // Change each individual motor/ESC, or update throttle
+    switch(motor) {
+        case ESC_1:
+            motormode = MANUAL;
+            mspeed1 = (int) value;
+            break;
+        case ESC_2:
+            motormode = MANUAL;
+            mspeed2 = (int) value;
+            break;
+        case ESC_3:
+            motormode = MANUAL;
+            mspeed3 = (int) value;
+            break;
+        case ESC_4:
+            motormode = MANUAL;
+            mspeed4 = (int) value;
+            break;
+        case ESC_AUTO:
+            motormode = AUTOMATIC;
+            break;
+        case THROTTLE:
+            throttle = value;
+            break;
+    }
 }
 
 uint32_t SetPositionRotation(uint8_t mode, uint32_t value) {
@@ -193,6 +230,7 @@ int main()
     #endif
     comm.init();
     comm.register_callbacks(&StopMotors, &Heartbeat, &SetPositionRotation, &SetMotor, &SetIMU);
+    commticker.attach(&comm, &XBeeUART::process_frames, 0.1); // process received frames at 10 Hz
 
     #ifdef DEBUG
         pc.printf("Arming Motors...\r\n");
@@ -201,7 +239,6 @@ int main()
     
     while (1)
     {   
-        comm.process_frames();
         GetAngleMeasurements();
         ControlUpdate();  
     }

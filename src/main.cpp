@@ -17,10 +17,11 @@ XBeeUART comm((uint16_t) 0); // 16-bit remote address of 1
 
 const float acclAlpha = 0.5;
 const float gyroAlpha = 0.98;
-const int gyroOffsetX;
-const int gyroOffsetY;
-const int gyroOffsetZ;
+int gyroOffsetX;
+int gyroOffsetY;
+int gyroOffsetZ;
 
+Ticker commticker;
 Timer t; // global timer
 uint32_t tprev = 0;
 
@@ -38,14 +39,17 @@ float gyroPitch, gyroRoll, gyroYaw; // (deg)
 float pitch, roll, yaw = 0.0;
 
 // PID variables
-float pid_roll_in,   pid_roll_out,   pid_roll_setpoint = 0;
-float pid_pitch_in,  pid_pitch_out,  pid_pitch_setpoint = 0;
-float pid_yaw_in,  pid_yaw_out,  pid_yaw_setpoint = 0;
+float pid_roll_in,   pid_roll_out,   pid_roll_setpoint = 0.0;
+float pid_pitch_in,  pid_pitch_out,  pid_pitch_setpoint = 0.0;
+float pid_yaw_in,  pid_yaw_out,  pid_yaw_setpoint = 0.0;
 
-int mspeed1 = MOTOR_MIN, mspeed3 = MOTOR_MIN; // Motors along the x-axis
+// Motor control - automatic (PID) or manual (comm)
+bool motormode = MANUAL;
+
+int mspeed1, mspeed3 = MOTOR_MIN; // Motors along the x-axis
 //=> Changing their speeds will affect the pitch
 
-int mspeed2 = MOTOR_MIN, mspeed4 = MOTOR_MIN; // Motors along the y-axis
+int mspeed2, mspeed4 = MOTOR_MIN; // Motors along the y-axis
 //=> Changing their speeds will affect the roll
 
 void InitIMU(void)
@@ -81,22 +85,16 @@ void InitIMU(void)
     accl.setPowerControl(0x08);
 
     // Set offset for accl
-    int16_t acclX = 0;
-    int16_t acclY = 0;
-    int16_t acclZ = 0;
+    int16_t readings[3] = {-1, -1, -1};
+    accl.getRawOutput(readings);
+    accl.setOffset(ADXL345_X, (uint8_t)readings[0]);
+    accl.setOffset(ADXL345_Y, (uint8_t)readings[1]);
+    accl.setOffset(ADXL345_Z, (uint8_t)readings[2]);
     
-    for (int i=0; i<250; i++)
-    {
-    	int16_t readings[3] = {-1, -1, -1};
-    	getRawOutput(readings);
-    	acclX += readings[0]);
-    	acclY += readings[1]);
-    	acclZ += readings[2]);
-    }
-    
-    setOffset(ADXL345_X, (int8_t)(acclX/250));
-    setOffset(ADXL345_Y, (int8_t)(acclY/250));
-    setOffset(ADXL345_Z, (int8_t)(acclZ/250));
+    #ifdef DEBUG
+    pc.printf("Gyro Offset (%d, %d, %d)\r\n", gyroOffsetX, gyroOffsetY, gyroOffsetZ);
+    pc.printf("Accel Offset (%d, %d, %d)\r\n", readings[0], readings[1], readings[2]);
+    #endif
 }
 
 void GetAngleMeasurements()
@@ -118,6 +116,7 @@ void GetAngleMeasurements()
         // Calculate the roll and pitch angles from the gyro measurements
         float groll = (float) (gyro.getGyroX() - gyroOffsetX) / 14.375;
         float gpitch = (float) (gyro.getGyroY() - gyroOffsetY) / 14.375;
+        uint32_t tcurr = t.read_us();
         uint32_t dt = t.read_us() - tprev;
         gyroRoll += groll * dt;
         gyroPitch += gpitch * dt;
@@ -126,7 +125,11 @@ void GetAngleMeasurements()
         roll  = gyroAlpha*gyroRoll  + (1-gyroAlpha)*acclRoll;
         pitch = gyroAlpha*gyroPitch + (1-gyroAlpha)*acclPitch;
         
-        tprev = t.read_us();
+        #ifdef DEBUG
+        pc.printf("Update: Roll, Pitch, Yaw (%f, %f, %f)\r\n", roll, pitch, yaw);
+        #endif
+        
+        tprev = tcurr;
     }
 }
 
@@ -137,10 +140,12 @@ void ControlUpdate()
     PIDCompute();
     
     // Calculate the new motor speeds
-    //mspeed1 = throttle + pid_pitch_out;
-    mspeed2 = throttle + pid_roll_out;
-    //mspeed3 = throttle - pid_pitch_out;
-    mspeed4 = throttle - pid_roll_out;
+    if(motormode == AUTOMATIC) {
+        //mspeed1 = throttle + pid_pitch_out;
+        mspeed2 = throttle + pid_roll_out;
+        //mspeed3 = throttle - pid_pitch_out;
+        mspeed4 = throttle - pid_roll_out;
+    }
     
     // Update the motor speeds
     UpdateMotors(&mspeed1, &mspeed2, &mspeed3, &mspeed4);
@@ -150,29 +155,59 @@ void ControlUpdate()
 void StopMotors() {
     
     #ifdef DEBUG
-        pc.printf("stop quadcopter\r\n");
+    pc.printf("stop quadcopter\r\n");
     #endif
 
     // add code to stop motors in an emergency
+    motormode = MANUAL;
+    mspeed1 = MOTOR_MIN;
+    mspeed2 = MOTOR_MIN;
+    mspeed3 = MOTOR_MIN;
+    mspeed4 = MOTOR_MIN;
+    UpdateMotors(&mspeed1, &mspeed2, &mspeed3, &mspeed4);
 }
 
 void Heartbeat() {
     comm.send_data((uint8_t *) "OK");
 }
 
-void SetMotor(uint8_t motor, uint8_t value) {
+void SetMotor(uint8_t motor, uint16_t value) {
     
     #ifdef DEBUG
-        pc.printf("set motor %d to %d\r\n", motor, value);
+    pc.printf("set motor %d to %d\r\n", motor, value);
     #endif
 
-    // add code to change individual motor/ESC
+    // Change each individual motor/ESC, or update throttle
+    switch(motor) {
+        case ESC_1:
+            motormode = MANUAL;
+            mspeed1 = (int) value;
+            break;
+        case ESC_2:
+            motormode = MANUAL;
+            mspeed2 = (int) value;
+            break;
+        case ESC_3:
+            motormode = MANUAL;
+            mspeed3 = (int) value;
+            break;
+        case ESC_4:
+            motormode = MANUAL;
+            mspeed4 = (int) value;
+            break;
+        case ESC_AUTO:
+            motormode = AUTOMATIC;
+            break;
+        case THROTTLE:
+            throttle = value;
+            break;
+    }
 }
 
 uint32_t SetPositionRotation(uint8_t mode, uint32_t value) {
     
     #ifdef DEBUG
-        pc.printf("move %d %d\r\n", mode, value);
+    pc.printf("move %d %d\r\n", mode, value);
     #endif
 
     // parse mode (X/Y/Z position/rotation set/get)
@@ -182,7 +217,7 @@ uint32_t SetPositionRotation(uint8_t mode, uint32_t value) {
 uint32_t SetIMU(uint8_t mode) {
     
     #ifdef DEBUG
-        pc.printf("imu %d\r\n", mode);
+    pc.printf("imu %d\r\n", mode);
     #endif
 
     // get/set IMU values
@@ -195,34 +230,34 @@ int main()
     t.start();
     
     #ifdef DEBUG 
-        pc.printf("Initializing Motors...\r\n");
+    pc.printf("Initializing Motors...\r\n");
     #endif
     InitMotors();
     
     #ifdef DEBUG 
-        pc.printf("Initializing IMU...\r\n");
+    pc.printf("Initializing IMU...\r\n");
     #endif
     InitIMU();
     
     #ifdef DEBUG
-        pc.printf("Initializing PID Controllers...\r\n");
+    pc.printf("Initializing PID Controllers...\r\n");
     #endif
     PIDInit(10); // Initialize the PID controllers with a 100Hz sampling rate
     
     #ifdef DEBUG
-        pc.printf("Initializing Communications...\r\n");
+    pc.printf("Initializing Communications...\r\n");
     #endif
     comm.init();
     comm.register_callbacks(&StopMotors, &Heartbeat, &SetPositionRotation, &SetMotor, &SetIMU);
+    commticker.attach(&comm, &XBeeUART::process_frames, 0.1); // process received frames at 10 Hz
 
     #ifdef DEBUG
-        pc.printf("Arming Motors...\r\n");
+    pc.printf("Arming Motors...\r\n");
     #endif
     ArmMotors();
     
     while (1)
     {   
-        comm.process_frames();
         GetAngleMeasurements();
         ControlUpdate();  
     }

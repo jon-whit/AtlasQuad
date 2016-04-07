@@ -81,22 +81,22 @@ void InitIMU(void)
     accl.setPowerControl(0x08);
 
     // Set offset for accl
-    uint8_t acclX = 0;
-    uint8_t acclY = 0;
-    uint8_t acclZ = 0;
+    int16_t acclX = 0;
+    int16_t acclY = 0;
+    int16_t acclZ = 0;
     
     for (int i=0; i<250; i++)
     {
     	int16_t readings[3] = {-1, -1, -1};
     	getRawOutput(readings);
-    	acclX += (uint8_t)readings[0]);
-    	acclY += (uint8_t)readings[1]);
-    	acclZ += (uint8_t)readings[2]);
+    	acclX += readings[0]);
+    	acclY += readings[1]);
+    	acclZ += readings[2]);
     }
     
-    setOffset(ADXL345_X, acclX/250);
-    setOffset(ADXL345_Y, acclY/250);
-    setOffset(ADXL345_Z, acclZ/250);
+    setOffset(ADXL345_X, (int8_t)(acclX/250));
+    setOffset(ADXL345_Y, (int8_t)(acclY/250));
+    setOffset(ADXL345_Z, (int8_t)(acclZ/250));
 }
 
 void GetAngleMeasurements()

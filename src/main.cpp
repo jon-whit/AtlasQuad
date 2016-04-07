@@ -58,12 +58,22 @@ void InitIMU(void)
     // time to 1kHz (1ms)
     gyro.setLpBandwidth(LPFBW_188HZ);
     gyro.setSampleRateDivider(0);
+    int gyroOffsetX_temp = 0;
+    int gyroOffsetY_temp = 0;
+    int gyroOffsetZ_temp = 0;
     
     // Set offset for gyro
-    gyroOffsetX = gyro.getGyroX();
-    gyroOffsetY = gyro.getGyroY();
-    gyroOffsetZ = gyro.getGyroZ();
+    for (int i=0; i<250; i++)
+    {
+    	gyroOffsetX_temp += gyro.getGyroX();
+    	gyroOffsetY_temp += gyro.getGyroY();
+    	gyroOffsetZ_temp += gyro.getGyroZ();
+    }
     
+    gyroOffsetX = gyroOffsetX_temp/250;
+    gyroOffsetY = gyroOffsetY_temp/250;
+    gyroOffsetZ = gyroOffsetZ_temp/250;
+	
     // Put the ADXL345 into standby mode to configure the device
     accl.setPowerControl(0x00);
     

@@ -117,13 +117,11 @@ void GetAngleMeasurements()
         float groll = (float) (gyro.getGyroX() - gyroOffsetX) / 14.375;
         float gpitch = (float) (gyro.getGyroY() - gyroOffsetY) / 14.375;
         uint32_t tcurr = t.read_us();
-        uint32_t dt = t.read_us() - tprev;
-        gyroRoll += groll * dt;
-        gyroPitch += gpitch * dt;
+        uint32_t dt = tcurr - tprev;
 
         // Complementary filter
-        roll  = gyroAlpha*gyroRoll  + (1-gyroAlpha)*acclRoll;
-        pitch = gyroAlpha*gyroPitch + (1-gyroAlpha)*acclPitch;
+        roll  = gyroAlpha*(roll + groll*dt)  + (1-gyroAlpha)*acclRoll;
+        pitch = gyroAlpha*(pitch + gpitch*dt) + (1-gyroAlpha)*acclPitch;
         
         #ifdef DEBUG
         pc.printf("Update: Roll, Pitch, Yaw (%f, %f, %f)\r\n", roll, pitch, yaw);

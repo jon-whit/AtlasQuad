@@ -17,12 +17,12 @@ XBeeUART comm((uint16_t) 0); // 16-bit remote address of 1
 
 const float acclAlpha = 0.5;
 const float gyroAlpha = 0.95;
-int gyroOffsetX;
-int gyroOffsetY;
-int gyroOffsetZ;
-int acclOffsetX;
-int acclOffsetY;
-int acclOffsetZ;
+int gyroOffsetX = 0;
+int gyroOffsetY = 0;
+int gyroOffsetZ = 0;
+int acclOffsetX = 0;
+int acclOffsetY = 0;
+int acclOffsetZ = 0;
 
 Ticker commticker;
 Timer t; // global timer
@@ -30,9 +30,9 @@ uint32_t tprev = 0;
 
 uint16_t throttle = 0;
 
-float fXg = 0;
-float fYg = 0;
-float fZg = 0;
+float fXg = 0.0;
+float fYg = 0.0;
+float fZg = 0.0;
 
 AccelG fG;
 float acclPitch, acclRoll; // (deg)
@@ -100,9 +100,9 @@ void InitIMU(void)
     acclOffsetY /= OFFSET_AVG_SAMPLES;
     acclOffsetZ /= OFFSET_AVG_SAMPLES;
     
-    //accl.setOffset(ADXL345_X, acclOffsetX);
-    //accl.setOffset(ADXL345_Y, acclOffsetY);
-    //accl.setOffset(ADXL345_Z, acclOffsetZ);
+    accl.setOffset(ADXL345_X, acclOffsetX);
+    accl.setOffset(ADXL345_Y, acclOffsetY);
+    accl.setOffset(ADXL345_Z, acclOffsetZ);
     
     #ifdef DEBUG
     pc.printf("Gyro Offset (%d, %d, %d)\r\n", gyroOffsetX, gyroOffsetY, gyroOffsetZ);
@@ -157,10 +157,10 @@ void ControlUpdate()
     
     // Calculate the new motor speeds
     if(motormode == AUTOMATIC) {
-        //mspeed1 = throttle + pid_pitch_out;
-        mspeed2 = throttle + pid_roll_out;
-        //mspeed3 = throttle - pid_pitch_out;
-        mspeed4 = throttle - pid_roll_out;
+        mspeed1 = throttle - pid_pitch_out;
+        mspeed2 = throttle - pid_roll_out;
+        mspeed3 = throttle + pid_pitch_out;
+        mspeed4 = throttle + pid_roll_out;
     }
     
     // Update the motor speeds
@@ -243,7 +243,7 @@ void SetPID(uint8_t mode, float value) {
         kd = value;
 
     #ifdef DEBUG
-    pc.printf("setpid %d %d %d (x100)\r\n", (int)(kp*100), (int)(ki*100), (int)(kd*100));
+    pc.printf("setpid %f %f %f\r\n", kp, ki, kd);
     #endif
 
     PIDSetConstants(kp, ki, kd);

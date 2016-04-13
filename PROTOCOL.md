@@ -36,6 +36,13 @@ Note that all of these override position/rotation commands.
  * `TH #` Set throttle for all four motors. Data is a 16-bit unsigned integer.
  * `AT`   Set Motor control back to automatic (PID) mode.
 
+### PID commands
+These commands set constants (Kp, Ki, Kd) for the PID controller, and are applied as soon as they are interpreted. Note that settings these do not set motor control to automatic mode.
+
+ * `KP #.#` Set Kp to a certain value. Data is a 32-bit float.
+ * `KI #.#` Set Ki to a certain value. Data is a 32-bit float.
+ * `KD #.#` Set Kd to a certain value. Data is a 32-bit float.
+
 ### IMU commands
 For retrieving positions and rotations, see the "Position/Rotation commands" section.
 

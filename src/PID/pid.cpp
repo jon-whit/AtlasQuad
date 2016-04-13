@@ -1,9 +1,9 @@
 #include "mbed.h"
 #include "pid.h"
 
-PID roll_controller(&pid_roll_in, &pid_roll_out, &pid_roll_setpoint, 5.0, 0.0, 0.0, REVERSE);
-PID pitch_controller(&pid_pitch_in, &pid_pitch_out, &pid_pitch_setpoint, 5.0, 0.0, 0.0, REVERSE);
-PID yaw_controller(&pid_yaw_in, &pid_yaw_out, &pid_yaw_setpoint, 5.0, 0.0, 0.0, DIRECT);
+PID roll_controller(&pid_roll_in, &pid_roll_out, &pid_roll_setpoint, KP, KI, KD, REVERSE);
+PID pitch_controller(&pid_pitch_in, &pid_pitch_out, &pid_pitch_setpoint, KP, KI, KD, REVERSE);
+PID yaw_controller(&pid_yaw_in, &pid_yaw_out, &pid_yaw_setpoint, KP, KI, KD, DIRECT);
 
 PID::PID(float* Input, float* Output, float* Setpoint,
          float Kp, float Ki, float Kd, int ControllerDirection)
@@ -167,4 +167,11 @@ void PIDCompute(void)
     roll_controller.Compute();
     pitch_controller.Compute();
     yaw_controller.Compute();
+}
+
+void PIDSetConstants(float kp, float ki, float kd)
+{
+    roll_controller.SetTunings(kp, ki, kd);
+    pitch_controller.SetTunings(kp, ki, kd);
+    yaw_controller.SetTunings(kp, ki, kd);
 }

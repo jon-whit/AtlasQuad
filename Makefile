@@ -25,7 +25,7 @@ CC_FLAGS = $(CPU) -c -g -fno-common -fmessage-length=0 -Wall -Wextra -fno-except
 CC_SYMBOLS = -D__CORTEX_M0 -DTARGET_NUCLEO_F072RB -DTOOLCHAIN_GCC_ARM -DTOOLCHAIN_GCC -DTARGET_FF_MORPHO -DTARGET_CORTEX_M -DTARGET_LIKE_MBED -DTARGET_FF_ARDUINO -DARM_MATH_CM0 -D__MBED__=1 -DTARGET_STM -DTARGET_STM32F0 -DTARGET_M0 -DMBED_BUILD_TIMESTAMP=1458973319.73 -DTARGET_STM32F072RB -DTARGET_LIKE_CORTEX_M0 
 
 LD_FLAGS = $(CPU) -Wl,--gc-sections --specs=nano.specs -Wl,--wrap,main -Wl,-Map=$(PROJECT).map,--cref
-#LD_FLAGS += -u _printf_float -u _scanf_float
+LD_FLAGS += -u _printf_float -u _scanf_float
 LD_SYS_LIBS = -lstdc++ -lsupc++ -lm -lc -lgcc -lnosys
 
 

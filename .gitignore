@@ -66,6 +66,8 @@
 # Debug files
 *.dSYM/
 
+### Python ###
+*.pyc
 
 ### Vim ###
 [._]*.s[a-w][a-z]

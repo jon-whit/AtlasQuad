@@ -10,6 +10,9 @@
 // set default timeout in milliseconds
 #define SYNC_OPS_TIMEOUT_MS 2000
 
+// Define the number of samples to calculate the IMU offsets
+#define OFFSET_AVG_SAMPLES 1000
+
 // XBee pin definitions
 #define RADIO_TX    PC_4
 #define RADIO_RX    PC_5

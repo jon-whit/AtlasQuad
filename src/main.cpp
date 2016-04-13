@@ -16,10 +16,13 @@ ADXL345 accl(IMU_SDA, IMU_SCL);
 XBeeUART comm((uint16_t) 0); // 16-bit remote address of 1
 
 const float acclAlpha = 0.5;
-const float gyroAlpha = 0.98;
+const float gyroAlpha = 0.95;
 int gyroOffsetX;
 int gyroOffsetY;
 int gyroOffsetZ;
+int acclOffsetX;
+int acclOffsetY;
+int acclOffsetZ;
 
 Ticker commticker;
 Timer t; // global timer
@@ -58,21 +61,19 @@ void InitIMU(void)
     // time to 1kHz (1ms)
     gyro.setLpBandwidth(LPFBW_188HZ);
     gyro.setSampleRateDivider(0);
-    int gyroOffsetX_temp = 0;
-    int gyroOffsetY_temp = 0;
-    int gyroOffsetZ_temp = 0;
+    wait_ms(50); // Wait for ZRO settling
     
-    // Set offset for gyro
-    for (int i=0; i<250; i++)
+    // Calculate an average offset for the gyro
+    for (int i = 0; i < OFFSET_AVG_SAMPLES; i++)
     {
-    	gyroOffsetX_temp += gyro.getGyroX();
-    	gyroOffsetY_temp += gyro.getGyroY();
-    	gyroOffsetZ_temp += gyro.getGyroZ();
+    	gyroOffsetX += gyro.getGyroX();
+    	gyroOffsetY += gyro.getGyroY();
+    	gyroOffsetZ += gyro.getGyroZ();
     }
     
-    gyroOffsetX = gyroOffsetX_temp/250;
-    gyroOffsetY = gyroOffsetY_temp/250;
-    gyroOffsetZ = gyroOffsetZ_temp/250;
+    gyroOffsetX /= OFFSET_AVG_SAMPLES;
+    gyroOffsetY /= OFFSET_AVG_SAMPLES;
+    gyroOffsetZ /= OFFSET_AVG_SAMPLES;
 	
     // Put the ADXL345 into standby mode to configure the device
     accl.setPowerControl(0x00);
@@ -84,16 +85,28 @@ void InitIMU(void)
     // Start ADXL345 measurement mode
     accl.setPowerControl(0x08);
 
-    // Set offset for accl
-    int16_t readings[3] = {-1, -1, -1};
-    accl.getRawOutput(readings);
-    accl.setOffset(ADXL345_X, (uint8_t)readings[0]);
-    accl.setOffset(ADXL345_Y, (uint8_t)readings[1]);
-    accl.setOffset(ADXL345_Z, (uint8_t)readings[2]);
+    // Calculate an average offset for the accelerometer    
+    for (int i = 0; i < OFFSET_AVG_SAMPLES; i++)
+    {
+        int16_t readings[3] = {-1, -1, -1};
+        accl.getRawOutput(readings);
+        
+        acclOffsetX += readings[0];
+        acclOffsetY += readings[1];
+        acclOffsetZ += readings[2];
+    }
+    
+    acclOffsetX /= OFFSET_AVG_SAMPLES;
+    acclOffsetY /= OFFSET_AVG_SAMPLES;
+    acclOffsetZ /= OFFSET_AVG_SAMPLES;
+    
+    //accl.setOffset(ADXL345_X, acclOffsetX);
+    //accl.setOffset(ADXL345_Y, acclOffsetY);
+    //accl.setOffset(ADXL345_Z, acclOffsetZ);
     
     #ifdef DEBUG
     pc.printf("Gyro Offset (%d, %d, %d)\r\n", gyroOffsetX, gyroOffsetY, gyroOffsetZ);
-    pc.printf("Accel Offset (%d, %d, %d)\r\n", readings[0], readings[1], readings[2]);
+    pc.printf("Accel Offset (%d, %d, %d)\r\n", acclOffsetX, acclOffsetY, acclOffsetZ);
     #endif
 }
 
@@ -114,17 +127,22 @@ void GetAngleMeasurements()
         acclPitch = (atan2(fXg, sqrt(fYg*fYg + fZg*fZg))*180.0)/M_PI;
 
         // Calculate the roll and pitch angles from the gyro measurements
-        float groll = (float) (gyro.getGyroX() - gyroOffsetX) / 14.375;
-        float gpitch = (float) (gyro.getGyroY() - gyroOffsetY) / 14.375;
+        float groll = (float) (gyro.getGyroX() - gyroOffsetX) / 8.375;
+        float gpitch = (float) (gyro.getGyroY() - gyroOffsetY) / 8.375;
+        
+        #ifdef DEBUG
+        //pc.printf("acclRoll (%f), grollrate (%f)\r\n", acclRoll, groll);
+        #endif
+        
         uint32_t tcurr = t.read_us();
-        uint32_t dt = tcurr - tprev;
+        float dt = (tcurr - tprev) / 1000000.0;
 
         // Complementary filter
         roll  = gyroAlpha*(roll + groll*dt)  + (1-gyroAlpha)*acclRoll;
         pitch = gyroAlpha*(pitch + gpitch*dt) + (1-gyroAlpha)*acclPitch;
         
         #ifdef DEBUG
-        pc.printf("Update: Roll, Pitch, Yaw (%f, %f, %f)\r\n", roll, pitch, yaw);
+        pc.printf("roll, pitch (%f, %f)\r\n", roll, pitch);
         #endif
         
         tprev = tcurr;

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<data>
+  <loop>false</loop>
+  <repeat_times>1</repeat_times>
+  <repeat_period>500</repeat_period>
+  <frames_list>
+    <frame name="heartbeat">
+      <payload>7E00070101000100484272</payload>
+    </frame>
+    <frame name="stop">
+      <payload>7E00070101000100534168</payload>
+    </frame>
+    <frame name="auto">
+      <payload>7E00070101000100415467</payload>
+    </frame>
+    <frame name="m1 1200">
+      <payload>7E000C01010001004D3120313230309B</payload>
+    </frame>
+    <frame name="m2 1200">
+      <payload>7E000C01010001004D3220313230309A</payload>
+    </frame>
+    <frame name="m3 1200">
+      <payload>7E000C01010001004D33203132303099</payload>
+    </frame>
+    <frame name="m4 1200">
+      <payload>7E000C01010001004D34203132303098</payload>
+    </frame>
+    <frame name="throttle 0">
+      <payload>7E000901010001005448203010</payload>
+    </frame>
+    <frame name="throttle 1100">
+      <payload>7E000C0101000100544820313130307E</payload>
+    </frame>
+    <frame name="throttle 1500">
+      <payload>7E000C0101000100544820313530307A</payload>
+    </frame>
+    <frame name="throttle 50">
+      <payload>7E000A01010001005448203530DB</payload>
+    </frame>
+  </frames_list>
+</data>

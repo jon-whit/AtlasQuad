@@ -212,6 +212,25 @@ uint32_t SetPositionRotation(uint8_t mode, uint32_t value) {
     return 0;
 }
 
+void SetPID(uint8_t mode, float value) {
+    // if values are zero, leave them alone
+    float kp = KP;
+    float ki = KI;
+    float kd = KD;
+    if(mode == UART_KP)
+        kp = value;
+    else if(mode == UART_KI)
+        ki = value;
+    else if(mode == UART_KD)
+        kd = value;
+
+    #ifdef DEBUG
+    pc.printf("setpid %d %d %d (x100)\r\n", (int)(kp*100), (int)(ki*100), (int)(kd*100));
+    #endif
+
+    PIDSetConstants(kp, ki, kd);
+}
+
 uint32_t SetIMU(uint8_t mode) {
     
     #ifdef DEBUG
@@ -246,7 +265,7 @@ int main()
     pc.printf("Initializing Communications...\r\n");
     #endif
     comm.init();
-    comm.register_callbacks(&StopMotors, &Heartbeat, &SetPositionRotation, &SetMotor, &SetIMU);
+    comm.register_callbacks(&StopMotors, &Heartbeat, &SetPositionRotation, &SetMotor, &SetIMU, &SetPID);
     commticker.attach(&comm, &XBeeUART::process_frames, 0.1); // process received frames at 10 Hz
 
     #ifdef DEBUG

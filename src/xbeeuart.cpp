@@ -11,6 +11,7 @@ UARTBasicCallback_t  XBeeUART::heartbeatcallback_ = NULL;
 UARTMoveCallback_t  XBeeUART::movecallback_ = NULL;
 UARTMotorCallback_t XBeeUART::motorcallback_ = NULL;
 UARTIMUCallback_t   XBeeUART::imucallback_ = NULL;
+UARTPIDCallback_t   XBeeUART::pidcallback_ = NULL;
 
 XBeeUART::XBeeUART() {
     remote_device_ = NULL;
@@ -26,12 +27,13 @@ void XBeeUART::init() {
     xbee_->init();
 }
 
-uint8_t XBeeUART::register_callbacks(UARTBasicCallback_t stop, UARTBasicCallback_t heartbeat, UARTMoveCallback_t move, UARTMotorCallback_t motor, UARTIMUCallback_t imu) {
+uint8_t XBeeUART::register_callbacks(UARTBasicCallback_t stop, UARTBasicCallback_t heartbeat, UARTMoveCallback_t move, UARTMotorCallback_t motor, UARTIMUCallback_t imu, UARTPIDCallback_t pid) {
     stopcallback_ = stop;
     heartbeatcallback_ = heartbeat;
     movecallback_ = move;
     motorcallback_ = motor;
     imucallback_ = imu;
+    pidcallback_ = pid;
 
     if(stopcallback_ == NULL || heartbeatcallback_ == NULL || movecallback_ == NULL || motorcallback_ == NULL || imucallback_ == NULL)
         return 1;
@@ -97,6 +99,7 @@ void XBeeUART::receive_cb_(const RemoteXBee802& remote, bool broadcast, const ui
             char value_string[11];
             memcpy(value_string, &data[2], len - 2); // copy characters 2 through len
             uint32_t value = atoi(value_string);
+            float value_f = atof(value_string); // get a float instead, for some commands
             if(!strncmp("XR", command, 2)) {
                 movecallback_(ROT_X, value);
             } else if(!strncmp("YR", command, 2)) {
@@ -121,6 +124,12 @@ void XBeeUART::receive_cb_(const RemoteXBee802& remote, bool broadcast, const ui
                 motorcallback_(ESC_AUTO, value);
             } else if(!strncmp("TH", command, 2)) {
                 motorcallback_(THROTTLE, value);
+            } else if(!strncmp("KP", command, 2)) {
+                pidcallback_(UART_KP, value_f);
+            } else if(!strncmp("KI", command, 2)) {
+                pidcallback_(UART_KI, value_f);
+            } else if(!strncmp("KD", command, 2)) {
+                pidcallback_(UART_KD, value_f);
             }
         }
     }

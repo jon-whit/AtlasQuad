@@ -220,7 +220,7 @@ void SetMotor(uint8_t motor, uint16_t value) {
     }
 }
 
-float SetPositionRotation(uint8_t mode, float value) {
+void SetPositionRotation(uint8_t mode, float value) {
     #ifdef DEBUG
     pc.printf("move %d %d\r\n", mode, value);
     #endif
@@ -249,7 +249,6 @@ float SetPositionRotation(uint8_t mode, float value) {
             comm.send_data((uint8_t *) buffer);
             break;
     }
-    return 0;
 }
 
 void SetPID(uint8_t mode, float value) {
@@ -271,14 +270,13 @@ void SetPID(uint8_t mode, float value) {
     PIDSetConstants(kp, ki, kd);
 }
 
-uint32_t SetIMU(uint8_t mode) {
+void SetIMU(uint8_t mode) {
     
     #ifdef DEBUG
     pc.printf("imu %d\r\n", mode);
     #endif
 
     // get/set IMU values
-    return 0;
 }
 
 int main()

@@ -37,7 +37,7 @@
 #define IMU_RST   0
 
 typedef void     (*UARTBasicCallback_t)();
-typedef uint32_t (*UARTMoveCallback_t)(uint8_t, uint32_t);
+typedef float (*UARTMoveCallback_t)(uint8_t, float);
 typedef void     (*UARTMotorCallback_t)(uint8_t, uint16_t);
 typedef uint32_t (*UARTIMUCallback_t)(uint8_t);
 typedef void     (*UARTPIDCallback_t)(uint8_t, float);

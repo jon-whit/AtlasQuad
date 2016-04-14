@@ -127,8 +127,8 @@ void GetAngleMeasurements()
         acclPitch = (atan2(fXg, sqrt(fYg*fYg + fZg*fZg))*180.0)/M_PI;
 
         // Calculate the roll and pitch angles from the gyro measurements
-        float groll = (float) (gyro.getGyroX() - gyroOffsetX) / 8.375;
-        float gpitch = (float) (gyro.getGyroY() - gyroOffsetY) / 8.375;
+        float groll = (float) (gyro.getGyroX() - gyroOffsetX) / 14.375;
+        float gpitch = (float) (gyro.getGyroY() - gyroOffsetY) / 14.375;
         
         #ifdef DEBUG
         //pc.printf("acclRoll (%f), grollrate (%f)\r\n", acclRoll, groll);

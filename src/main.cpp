@@ -138,6 +138,7 @@ void GetAngleMeasurements()
         #ifdef DEBUG
         //pc.printf("(%f, %f, %f)", roll, pitch, yaw);
         #endif
+        
         tprev = tcurr;
     }
 }

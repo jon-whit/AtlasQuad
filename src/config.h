@@ -23,7 +23,7 @@
 // IMU pin definitions
 #define IMU_SDA          PB_9
 #define IMU_SCL          PB_8
-#define IMU_SAMPLE_TIME  10000 // in us (10ms)
+#define IMU_SAMPLE_TIME  10 // (ms)
 
 // ESC pin definitions
 #define ESC1_PIN    D4

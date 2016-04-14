@@ -26,7 +26,7 @@ int acclOffsetZ = 0;
 
 Ticker commticker;
 Timer t; // global timer
-uint32_t tprev = 0;
+uint32_t tcurr, tprev = 0;
 
 uint16_t throttle = 0;
 
@@ -112,8 +112,8 @@ void InitIMU(void)
 
 void GetAngleMeasurements()
 {
-    if (t.read_us() - tprev >= IMU_SAMPLE_TIME)
-    {
+    if (((tcurr = t.read_ms()) - tprev) >= IMU_SAMPLE_TIME)
+    {    
         // Get the forces in X, Y, and Z
         fG = accl.getAccelG();
 
@@ -127,24 +127,17 @@ void GetAngleMeasurements()
         acclPitch = (atan2(fXg, sqrt(fYg*fYg + fZg*fZg))*180.0)/M_PI;
 
         // Calculate the roll and pitch angles from the gyro measurements
-        float groll = (float) (gyro.getGyroX() - gyroOffsetX) / 8.375;
-        float gpitch = (float) (gyro.getGyroY() - gyroOffsetY) / 8.375;
-        
-        #ifdef DEBUG
-        //pc.printf("acclRoll (%f), grollrate (%f)\r\n", acclRoll, groll);
-        #endif
-        
-        uint32_t tcurr = t.read_us();
-        float dt = (tcurr - tprev) / 1000000.0;
+        float groll = (float) (gyro.getGyroX() - gyroOffsetX) / 14.375;
+        float gpitch = (float) (gyro.getGyroY() - gyroOffsetY) / 14.375;
+        float dt = (tcurr - tprev) / 1000.0;
 
         // Complementary filter
         roll  = gyroAlpha*(roll + groll*dt)  + (1-gyroAlpha)*acclRoll;
         pitch = gyroAlpha*(pitch + gpitch*dt) + (1-gyroAlpha)*acclPitch;
         
         #ifdef DEBUG
-        pc.printf("roll, pitch (%f, %f)\r\n", roll, pitch);
+        //pc.printf("(%f, %f, %f)", roll, pitch, yaw);
         #endif
-        
         tprev = tcurr;
     }
 }
@@ -293,6 +286,7 @@ int main()
     
     while (1)
     {   
+        // Runs at ~2.8kHz
         GetAngleMeasurements();
         ControlUpdate();  
     }

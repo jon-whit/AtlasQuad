@@ -15,14 +15,15 @@ ITG3200 gyro(IMU_SDA, IMU_SCL);
 ADXL345 accl(IMU_SDA, IMU_SCL);
 XBeeUART comm((uint16_t) 0); // 16-bit remote address of 1
 
-const float acclAlpha = 0.5;
-const float gyroAlpha = 0.95;
-int gyroOffsetX = 0;
-int gyroOffsetY = 0;
-int gyroOffsetZ = 0;
-int acclOffsetX = 0;
-int acclOffsetY = 0;
-int acclOffsetZ = 0;
+const float acclAlpha = 0.75;
+const float gyroAlpha = 0.92;
+
+float gyroOffsetX = 0.0;
+float gyroOffsetY = 0.0;
+float gyroOffsetZ = 0.0;
+float acclOffsetX = 0.0;
+float acclOffsetY = 0.0;
+float acclOffsetZ = 0.0;
 
 Ticker commticker;
 Timer t; // global timer
@@ -30,14 +31,9 @@ uint32_t tcurr, tprev = 0;
 
 uint16_t throttle = 0;
 
-float fXg = 0.0;
-float fYg = 0.0;
-float fZg = 0.0;
-
 AccelG fG;
-float acclPitch, acclRoll; // (deg)
-
-float gyroPitch, gyroRoll, gyroYaw; // (deg)
+float acclroll, acclpitch; // (deg)
+float fXg, fYg, fZg = 0.0;
 
 float pitch, roll, yaw = 0.0;
 
@@ -55,7 +51,8 @@ int mspeed1, mspeed3 = MOTOR_MIN; // Motors along the x-axis
 int mspeed2, mspeed4 = MOTOR_MIN; // Motors along the y-axis
 //=> Changing their speeds will affect the roll
 
-void InitIMU(void)
+
+void InitGyro()
 {
     // Set the internal sample rate to 1kHz and set the sample
     // time to 1kHz (1ms)
@@ -68,13 +65,18 @@ void InitIMU(void)
     {
     	gyroOffsetX += gyro.getGyroX();
     	gyroOffsetY += gyro.getGyroY();
-    	gyroOffsetZ += gyro.getGyroZ();
     }
     
     gyroOffsetX /= OFFSET_AVG_SAMPLES;
     gyroOffsetY /= OFFSET_AVG_SAMPLES;
-    gyroOffsetZ /= OFFSET_AVG_SAMPLES;
-	
+    
+    #ifdef DEBUG
+    pc.printf("Gyro Offset (X, Y, Z): (%f, %f, %f)\r\n", gyroOffsetX, gyroOffsetY, gyroOffsetZ);
+    #endif
+}
+
+void InitAccelerometer()
+{
     // Put the ADXL345 into standby mode to configure the device
     accl.setPowerControl(0x00);
     
@@ -85,29 +87,30 @@ void InitIMU(void)
     // Start ADXL345 measurement mode
     accl.setPowerControl(0x08);
 
-    // Calculate an average offset for the accelerometer    
+    // Calculate an average offset for the accelerometer
+    AccelG fg;
     for (int i = 0; i < OFFSET_AVG_SAMPLES; i++)
     {
-        int16_t readings[3] = {-1, -1, -1};
-        accl.getRawOutput(readings);
+        fg = accl.getAccelG();
         
-        acclOffsetX += readings[0];
-        acclOffsetY += readings[1];
-        acclOffsetZ += readings[2];
+        acclOffsetX += fg.x;
+        acclOffsetY += fg.y;
+        acclOffsetZ += (fg.z - 1);
     }
     
     acclOffsetX /= OFFSET_AVG_SAMPLES;
     acclOffsetY /= OFFSET_AVG_SAMPLES;
     acclOffsetZ /= OFFSET_AVG_SAMPLES;
     
-    accl.setOffset(ADXL345_X, acclOffsetX);
-    accl.setOffset(ADXL345_Y, acclOffsetY);
-    accl.setOffset(ADXL345_Z, acclOffsetZ);
-    
     #ifdef DEBUG
-    pc.printf("Gyro Offset (%d, %d, %d)\r\n", gyroOffsetX, gyroOffsetY, gyroOffsetZ);
-    pc.printf("Accel Offset (%d, %d, %d)\r\n", acclOffsetX, acclOffsetY, acclOffsetZ);
+    pc.printf("Accel Offset (X, Y, Z): (%f, %f, %f)\r\n", acclOffsetX, acclOffsetY, acclOffsetZ);
     #endif
+}
+
+void InitIMU(void)
+{
+    InitGyro();
+    InitAccelerometer();
 }
 
 void GetAngleMeasurements()
@@ -116,27 +119,26 @@ void GetAngleMeasurements()
     {    
         // Get the forces in X, Y, and Z
         fG = accl.getAccelG();
+        
+        // Low pass filter
+        fXg = (fG.x - acclOffsetX) * acclAlpha + (fXg * (1.0 - acclAlpha));
+        fYg = (fG.y - acclOffsetY) * acclAlpha + (fYg * (1.0 - acclAlpha));
+        fZg = (fG.z - acclOffsetZ) * acclAlpha + (fZg * (1.0 - acclAlpha));
+        
+        acclroll  = (atan2(-fYg, fZg)*180.0)/M_PI;
+        acclpitch = (atan2(fXg, sqrt(fYg*fYg + fZg*fZg))*180.0)/M_PI;
 
-        // Low Pass Filter
-        fXg = fG.x * acclAlpha + (fXg * (1.0 - acclAlpha));
-        fYg = fG.y * acclAlpha + (fYg * (1.0 - acclAlpha));
-        fZg = fG.z * acclAlpha + (fZg * (1.0 - acclAlpha));
-
-        // Roll & Pitch Equations
-        acclRoll  = (atan2(-fYg, fZg)*180.0)/M_PI;
-        acclPitch = (atan2(fXg, sqrt(fYg*fYg + fZg*fZg))*180.0)/M_PI;
-
-        // Calculate the roll and pitch angles from the gyro measurements
-        float groll = (float) (gyro.getGyroX() - gyroOffsetX) / 14.375;
-        float gpitch = (float) (gyro.getGyroY() - gyroOffsetY) / 14.375;
+        // Calculate the roll and pitch angles from the gyro measurements (in deg/s)
+        float grollRate  = (gyro.getGyroX() - gyroOffsetX) / 14.375;
+        float gpitchRate = (gyro.getGyroY() - gyroOffsetY) / 14.375;
         float dt = (tcurr - tprev) / 1000.0;
 
-        // Complementary filter
-        roll  = gyroAlpha*(roll + groll*dt)  + (1-gyroAlpha)*acclRoll;
-        pitch = gyroAlpha*(pitch + gpitch*dt) + (1-gyroAlpha)*acclPitch;
+        // Complementary filter used to obtain roll and pitch (in deg)
+        roll  = gyroAlpha*(roll + grollRate * dt)  + (1-gyroAlpha)*acclroll;
+        pitch = gyroAlpha*(pitch + gpitchRate * dt) + (1-gyroAlpha)*acclpitch;
         
         #ifdef DEBUG
-        //pc.printf("(%f, %f, %f)", roll, pitch, yaw);
+        pc.printf("(Roll, Pitch): (%f, %f)\r\n", roll, pitch);
         #endif
         
         tprev = tcurr;

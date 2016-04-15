@@ -507,7 +507,7 @@ AccelG ADXL345::getAccelG(void)
     } 
     else 
     {   
-        scale = (float) range / 1024;
+        scale = range / 1024.0;
     }
     
     AccelG res;

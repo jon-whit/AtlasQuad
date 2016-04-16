@@ -19,12 +19,12 @@ All return values are sent back as data (no command prefix), as integers or byte
  * `HB` Heartbeat command. Won't change behavior, but the quadcopter will always respond. No data bytes required.
 
 ### Rotation commands
- * `XR ####` Rotate around the X axis a certain amount, relative to the quadcopter. Data is a 32-bit signed integer.
- * `YR ####` Rotate around the Y axis a certain amount, relative to the quadcopter. Data is a 32-bit signed integer.
- * `ZR ####` Rotate around the Z axis a certain amount, relative to the quadcopter. Data is a 32-bit signed integer.
- * `RX` Get X rotation. This is returned as a 32-bit signed integer.
- * `RY` Get Y rotation. This is returned as a 32-bit signed integer.
- * `RZ` Get Z rotation. This is returned as a 32-bit signed integer.
+ * `XR #.#` Rotate around the X axis a certain amount, relative to the quadcopter. Data is a 32-bit float.
+ * `YR #.#` Rotate around the Y axis a certain amount, relative to the quadcopter. Data is a 32-bit float.
+ * `ZR #.#` Rotate around the Z axis a certain amount, relative to the quadcopter. Data is a 32-bit float.
+ * `RX` Get X rotation. This is returned as a 32-bit float.
+ * `RY` Get Y rotation. This is returned as a 32-bit float.
+ * `RZ` Get Z rotation. This is returned as a 32-bit float.
 
 ### Motor commands
 Note that all of these override position/rotation commands.

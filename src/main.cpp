@@ -219,14 +219,35 @@ void SetMotor(uint8_t motor, uint16_t value) {
     }
 }
 
-uint32_t SetPositionRotation(uint8_t mode, uint32_t value) {
-    
+void SetPositionRotation(uint8_t mode, float value) {
     #ifdef DEBUG
     pc.printf("move %d %d\r\n", mode, value);
     #endif
 
-    // parse mode (X/Y/Z position/rotation set/get)
-    return 0;
+    char buffer[12];
+    switch(mode) {
+        case ROT_X:
+            pid_roll_setpoint = value;
+            break;
+        case ROT_Y:
+            pid_pitch_setpoint = value;
+            break;
+        case ROT_Z:
+            pid_yaw_setpoint = value;
+            break;
+        case GET_ROT_X:
+            snprintf(buffer, sizeof(buffer), "%f", roll);
+            comm.send_data((uint8_t *) buffer);
+            break;
+        case GET_ROT_Y:
+            snprintf(buffer, sizeof(buffer), "%f", pitch);
+            comm.send_data((uint8_t *) buffer);
+            break;
+        case GET_ROT_Z:
+            snprintf(buffer, sizeof(buffer), "%f", yaw);
+            comm.send_data((uint8_t *) buffer);
+            break;
+    }
 }
 
 void SetPID(uint8_t mode, float value) 
@@ -248,14 +269,13 @@ void SetPID(uint8_t mode, float value)
     }
 }
 
-uint32_t SetIMU(uint8_t mode) {
+void SetIMU(uint8_t mode) {
     
     #ifdef DEBUG
     pc.printf("imu %d\r\n", mode);
     #endif
 
     // get/set IMU values
-    return 0;
 }
 
 int main()

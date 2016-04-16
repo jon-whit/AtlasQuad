@@ -1,9 +1,9 @@
 #include "mbed.h"
 #include "pid.h"
 
-PID roll_controller(&pid_roll_in, &pid_roll_out, &pid_roll_setpoint, KP, KI, KD, REVERSE);
-PID pitch_controller(&pid_pitch_in, &pid_pitch_out, &pid_pitch_setpoint, KP, KI, KD, REVERSE);
-PID yaw_controller(&pid_yaw_in, &pid_yaw_out, &pid_yaw_setpoint, KP, KI, KD, DIRECT);
+extern PID roll_controller;
+extern PID pitch_controller;
+extern PID yaw_controller;
 
 PID::PID(float* Input, float* Output, float* Setpoint,
          float Kp, float Ki, float Kd, int ControllerDirection)
@@ -134,6 +134,9 @@ void PID::SetControllerDirection(int Direction)
 float PID::GetKp(){ return  dispKp; }
 float PID::GetKi(){ return  dispKi;}
 float PID::GetKd(){ return  dispKd;}
+void PID::SetKp(float Kp) { kp = Kp; }
+void PID::SetKi(float Ki) { ki = Ki; }
+void PID::SetKd(float Kd) { kd = Kd; }
 int PID::GetMode(){ return  inAuto ? AUTOMATIC : MANUAL;}
 int PID::GetDirection(){ return controllerDirection;}
 
@@ -174,4 +177,25 @@ void PIDSetConstants(float kp, float ki, float kd)
     roll_controller.SetTunings(kp, ki, kd);
     pitch_controller.SetTunings(kp, ki, kd);
     yaw_controller.SetTunings(kp, ki, kd);
+}
+
+void PIDSetKp(float kp)
+{
+    roll_controller.SetKp(kp);
+    pitch_controller.SetKp(kp);
+    yaw_controller.SetKp(kp);
+}
+
+void PIDSetKi(float ki)
+{
+    roll_controller.SetKi(ki);
+    pitch_controller.SetKi(ki);
+    yaw_controller.SetKi(ki);
+}
+
+void PIDSetKd(float kd)
+{
+    roll_controller.SetKd(kd);
+    pitch_controller.SetKd(kd);
+    yaw_controller.SetKd(kd);
 }

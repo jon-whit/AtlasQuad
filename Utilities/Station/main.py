@@ -81,12 +81,12 @@ if __name__ == "__main__":
                 content = Msg[7:-1].decode('ascii')
                 print(content)
         elif p == 'w':
-            throttle += 50
+            throttle += 10
             if throttle > 1900: throttle = 1900
             print("throttle+ " + str(throttle))
             xbee.SendStr("TH " + str(throttle), addr=address)
         elif p == 's':
-            throttle -= 50
+            throttle -= 10
             if throttle < 1100: throttle = 1100
             print("throttle- " + str(throttle))
             xbee.SendStr("TH " + str(throttle), addr=address)

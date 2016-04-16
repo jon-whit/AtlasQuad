@@ -7,9 +7,9 @@ extern float pid_roll_setpoint, pid_pitch_setpoint, pid_yaw_setpoint;
 extern float roll, pitch, yaw;
 extern Timer t;
 
-#define KP 5.0
-#define KI 0.0
-#define KD 0.0
+#define KP 2.20
+#define KI 0.02
+#define KD 1.25
 
 /*
  * PID - A PID controller implementation.
@@ -62,6 +62,9 @@ public:
     bool Compute(void);
     
     void SetTunings(float Kp, float Ki, float Kd);
+    void SetKp(float Kp);
+    void SetKi(float Ki);
+    void SetKd(float Kd);
     void SetSampleTime(int NewSampleTime);
     void SetOutputLimits(float Min, float Max);
     void SetMode(int Mode);
@@ -79,5 +82,8 @@ void PIDInit(int SampleTime);
 void PIDUpdate(void);
 void PIDCompute(void);
 void PIDSetConstants(float kp, float ki, float kd);
+void PIDSetKp(float kp);
+void PIDSetKi(float ki);
+void PIDSetKd(float kd);
 
 #endif

@@ -14,9 +14,12 @@ Serial pc(SERIAL_TX, SERIAL_RX); // TX, RX
 ITG3200 gyro(IMU_SDA, IMU_SCL);
 ADXL345 accl(IMU_SDA, IMU_SCL);
 XBeeUART comm((uint16_t) 0); // 16-bit remote address of 1
+PID roll_controller(&pid_roll_in, &pid_roll_out, &pid_roll_setpoint, KP, KI, KD, REVERSE);
+PID pitch_controller(&pid_pitch_in, &pid_pitch_out, &pid_pitch_setpoint, KP, KI, KD, REVERSE);
+PID yaw_controller(&pid_yaw_in, &pid_yaw_out, &pid_yaw_setpoint, KP, KI, KD, DIRECT);
 
-const float acclAlpha = 0.75;
-const float gyroAlpha = 0.92;
+const float acclAlpha = 0.5;
+const float gyroAlpha = 0.95;
 
 float gyroOffsetX = 0.0;
 float gyroOffsetY = 0.0;
@@ -153,10 +156,10 @@ void ControlUpdate()
     
     // Calculate the new motor speeds
     if(motormode == AUTOMATIC) {
-        mspeed1 = throttle - pid_pitch_out;
-        mspeed2 = throttle - pid_roll_out;
-        mspeed3 = throttle + pid_pitch_out;
-        mspeed4 = throttle + pid_roll_out;
+        //mspeed1 = throttle - pid_pitch_out;
+        mspeed2 = throttle + pid_roll_out;
+        //mspeed3 = throttle + pid_pitch_out;
+        mspeed4 = throttle - pid_roll_out;
     }
     
     // Update the motor speeds
@@ -226,23 +229,23 @@ uint32_t SetPositionRotation(uint8_t mode, uint32_t value) {
     return 0;
 }
 
-void SetPID(uint8_t mode, float value) {
-    // if values are zero, leave them alone
-    float kp = KP;
-    float ki = KI;
-    float kd = KD;
-    if(mode == UART_KP)
-        kp = value;
-    else if(mode == UART_KI)
-        ki = value;
-    else if(mode == UART_KD)
-        kd = value;
-
-    #ifdef DEBUG
-    pc.printf("setpid %f %f %f\r\n", kp, ki, kd);
-    #endif
-
-    PIDSetConstants(kp, ki, kd);
+void SetPID(uint8_t mode, float value) 
+{
+    
+    switch (mode)
+    {
+        case UART_KP:
+            PIDSetKp(value);
+            break;
+        case UART_KI:
+            PIDSetKi(value);
+            break;
+        case UART_KD:
+            PIDSetKd(value);
+            break;
+        default:
+            break;
+    }
 }
 
 uint32_t SetIMU(uint8_t mode) {

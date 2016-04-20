@@ -156,9 +156,9 @@ void ControlUpdate()
     
     // Calculate the new motor speeds
     if(motormode == AUTOMATIC) {
-        //mspeed1 = throttle - pid_pitch_out;
+        //mspeed1 = throttle + pid_pitch_out;
         mspeed2 = throttle + pid_roll_out;
-        //mspeed3 = throttle + pid_pitch_out;
+        //mspeed3 = throttle - pid_pitch_out;
         mspeed4 = throttle - pid_roll_out;
     }
     
@@ -219,7 +219,7 @@ void SetMotor(uint8_t motor, uint16_t value) {
     }
 }
 
-void SetPositionRotation(uint8_t mode, float value) {
+void SetRotation(uint8_t mode, float value) {
     #ifdef DEBUG
     pc.printf("move %d %d\r\n", mode, value);
     #endif
@@ -269,15 +269,6 @@ void SetPID(uint8_t mode, float value)
     }
 }
 
-void SetIMU(uint8_t mode) {
-    
-    #ifdef DEBUG
-    pc.printf("imu %d\r\n", mode);
-    #endif
-
-    // get/set IMU values
-}
-
 int main()
 {
     // Start the global timer
@@ -302,7 +293,7 @@ int main()
     pc.printf("Initializing Communications...\r\n");
     #endif
     comm.init();
-    comm.register_callbacks(&StopMotors, &Heartbeat, &SetPositionRotation, &SetMotor, &SetIMU, &SetPID);
+    comm.register_callbacks(&StopMotors, &Heartbeat, &SetRotation, &SetMotor, &SetPID);
     commticker.attach(&comm, &XBeeUART::process_frames, 0.1); // process received frames at 10 Hz
 
     #ifdef DEBUG

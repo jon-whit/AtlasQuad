@@ -39,7 +39,6 @@
 typedef void     (*UARTBasicCallback_t)();
 typedef void     (*UARTMoveCallback_t)(uint8_t, float);
 typedef void     (*UARTMotorCallback_t)(uint8_t, uint16_t);
-typedef void     (*UARTIMUCallback_t)(uint8_t);
 typedef void     (*UARTPIDCallback_t)(uint8_t, float);
 
 class XBeeUART
@@ -62,7 +61,7 @@ public:
      * Register callbacks to be used whenever a message is received. The callbacks are run
      * as soon as a message is received, depending on the message content and/or command.
      */
-    uint8_t register_callbacks(UARTBasicCallback_t stop, UARTBasicCallback_t heartbeat, UARTMoveCallback_t move, UARTMotorCallback_t motor, UARTIMUCallback_t imu, UARTPIDCallback_t pid);
+    uint8_t register_callbacks(UARTBasicCallback_t stop, UARTBasicCallback_t heartbeat, UARTMoveCallback_t move, UARTMotorCallback_t motor, UARTPIDCallback_t pid);
 
     /**
      * Get most recent message (first byte, anyway) received by the radio.
@@ -102,7 +101,6 @@ private:
     static UARTBasicCallback_t  heartbeatcallback_;
     static UARTMoveCallback_t  movecallback_;
     static UARTMotorCallback_t motorcallback_;
-    static UARTIMUCallback_t   imucallback_;
     static UARTPIDCallback_t   pidcallback_;
 };
 

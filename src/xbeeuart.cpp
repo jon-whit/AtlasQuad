@@ -10,7 +10,6 @@ UARTBasicCallback_t  XBeeUART::stopcallback_ = NULL;
 UARTBasicCallback_t  XBeeUART::heartbeatcallback_ = NULL;
 UARTMoveCallback_t  XBeeUART::movecallback_ = NULL;
 UARTMotorCallback_t XBeeUART::motorcallback_ = NULL;
-UARTIMUCallback_t   XBeeUART::imucallback_ = NULL;
 UARTPIDCallback_t   XBeeUART::pidcallback_ = NULL;
 
 XBeeUART::XBeeUART() {
@@ -27,15 +26,14 @@ void XBeeUART::init() {
     xbee_->init();
 }
 
-uint8_t XBeeUART::register_callbacks(UARTBasicCallback_t stop, UARTBasicCallback_t heartbeat, UARTMoveCallback_t move, UARTMotorCallback_t motor, UARTIMUCallback_t imu, UARTPIDCallback_t pid) {
+uint8_t XBeeUART::register_callbacks(UARTBasicCallback_t stop, UARTBasicCallback_t heartbeat, UARTMoveCallback_t move, UARTMotorCallback_t motor, UARTPIDCallback_t pid) {
     stopcallback_ = stop;
     heartbeatcallback_ = heartbeat;
     movecallback_ = move;
     motorcallback_ = motor;
-    imucallback_ = imu;
     pidcallback_ = pid;
 
-    if(stopcallback_ == NULL || heartbeatcallback_ == NULL || movecallback_ == NULL || motorcallback_ == NULL || imucallback_ == NULL)
+    if(stopcallback_ == NULL || heartbeatcallback_ == NULL || movecallback_ == NULL || motorcallback_ == NULL)
         return 1;
     else
         return 0;
@@ -92,8 +90,6 @@ void XBeeUART::receive_cb_(const RemoteXBee802& remote, bool broadcast, const ui
             stopcallback_();
         } else if(!strncmp("HB", command, 2)) {
             heartbeatcallback_();
-        } else if(!strncmp("IR", command, 2)) {
-            imucallback_(IMU_RST);
         } else {
             // get value from message
             char value_string[11];

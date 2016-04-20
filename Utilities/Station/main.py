@@ -45,9 +45,10 @@ throttle = 1100
 
 def print_legend():
     print("Legend:")
-    print("[q = quit] [spacebar = stop] [a = auto] [r = reset] [h = heartbeat]")
+    print("[q = quit] [spacebar = stop] [a = auto] [! = reset] [h = heartbeat]")
     print("[w = increase throttle] [s = decrease throttle]")
     print("[p = modify Kp] [i = modify Ki] [d = modify Kd]")
+    print("[x = roll] [y = pitch] [z = yaw]")
     print("[1-4 = manually set ESC 1-4 power]")
     
 
@@ -70,10 +71,10 @@ if __name__ == "__main__":
         elif p == ' ':
             print("stop")
             xbee.SendStr("SA", addr=address)
-        elif p == 'r':
+        elif p == '!':
             xbee.SendStr("RR", addr=address)
             print("waiting for reset...")
-            sleep 10
+            sleep(10)
             print("setting throttle value...")
             xbee.SendStr("TH " + str(throttle), addr=address)
         elif p == 'a':
@@ -117,3 +118,12 @@ if __name__ == "__main__":
         elif p == 'd':
             val = raw_input("new Kd value: ")
             xbee.SendStr("KD " + str(val), addr=address)
+        elif p == 'x':
+            val = raw_input("new roll value: ")
+            xbee.SendStr("XR " + str(val), addr=address)
+        elif p == 'y':
+            val = raw_input("new pitch value: ")
+            xbee.SendStr("YR " + str(val), addr=address)
+        elif p == 'z':
+            val = raw_input("new yaw value: ")
+            xbee.SendStr("ZR " + str(val), addr=address)

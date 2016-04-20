@@ -180,6 +180,15 @@ void StopMotors() {
     mspeed3 = MOTOR_MIN;
     mspeed4 = MOTOR_MIN;
     UpdateMotors(&mspeed1, &mspeed2, &mspeed3, &mspeed4);
+
+    // also stop PID computes
+    roll_controller.SetMode(MANUAL);
+    pitch_controller.SetMode(MANUAL);
+    yaw_controller.SetMode(MANUAL);
+}
+
+void ResetAll() {
+    NVIC_SystemReset();
 }
 
 void Heartbeat() {
@@ -212,6 +221,9 @@ void SetMotor(uint8_t motor, uint16_t value) {
             break;
         case ESC_AUTO:
             motormode = AUTOMATIC;
+            roll_controller.SetMode(AUTOMATIC);
+            pitch_controller.SetMode(AUTOMATIC);
+            yaw_controller.SetMode(AUTOMATIC);
             break;
         case THROTTLE:
             throttle = value;
@@ -293,7 +305,7 @@ int main()
     pc.printf("Initializing Communications...\r\n");
     #endif
     comm.init();
-    comm.register_callbacks(&StopMotors, &Heartbeat, &SetRotation, &SetMotor, &SetPID);
+    comm.register_callbacks(&StopMotors, &ResetAll, &Heartbeat, &SetRotation, &SetMotor, &SetPID);
     commticker.attach(&comm, &XBeeUART::process_frames, 0.1); // process received frames at 10 Hz
 
     #ifdef DEBUG

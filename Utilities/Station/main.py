@@ -45,7 +45,7 @@ throttle = 1100
 
 def print_legend():
     print("Legend:")
-    print("[q = quit] [spacebar = stop] [a = auto] [h = heartbeat]")
+    print("[q = quit] [spacebar = stop] [a = auto] [r = reset] [h = heartbeat]")
     print("[w = increase throttle] [s = decrease throttle]")
     print("[p = modify Kp] [i = modify Ki] [d = modify Kd]")
     print("[1-4 = manually set ESC 1-4 power]")
@@ -70,6 +70,12 @@ if __name__ == "__main__":
         elif p == ' ':
             print("stop")
             xbee.SendStr("SA", addr=address)
+        elif p == 'r':
+            xbee.SendStr("RR", addr=address)
+            print("waiting for reset...")
+            sleep 10
+            print("setting throttle value...")
+            xbee.SendStr("TH " + str(throttle), addr=address)
         elif p == 'a':
             print("auto")
             xbee.SendStr("AT", addr=address)

@@ -43,9 +43,4 @@ These commands set constants (Kp, Ki, Kd) for the PID controller, and are applie
  * `KI #.#` Set Ki to a certain value. Data is a 32-bit float.
  * `KD #.#` Set Kd to a certain value. Data is a 32-bit float.
 
-### IMU commands
-For retrieving positions and rotations, see the "Position/Rotation commands" section.
-
- * `IR` Reset IMU (gyro) values. No data bytes required.
-
 Invalid commands will not change behavior.

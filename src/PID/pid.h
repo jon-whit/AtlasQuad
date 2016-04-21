@@ -7,9 +7,9 @@ extern float pid_roll_setpoint, pid_pitch_setpoint, pid_yaw_setpoint;
 extern float roll, pitch, yaw;
 extern Timer t;
 
-#define KP 0.02
-#define KI 0.0125
-#define KD 1.25
+#define KP 0.2
+#define KI 0.2
+#define KD 0.006
 
 /*
  * PID - A PID controller implementation.

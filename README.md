@@ -38,5 +38,4 @@ make DEBUG=1
 
 ## TODO
 
-
 [1]: [https://launchpad.net/gcc-arm-embedded]

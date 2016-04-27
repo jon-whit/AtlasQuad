@@ -55,6 +55,10 @@ int mspeed2, mspeed4 = MOTOR_MIN; // Motors along the y-axis
 //=> Changing their speeds will affect the roll
 
 
+/*
+*   Function to initialize the Gyro sample rate and give it the base offset value to give
+*   better calculations in the GetAngleMeasurements function
+*/
 void InitGyro()
 {
     // Set the internal sample rate to 1kHz and set the sample
@@ -66,10 +70,10 @@ void InitGyro()
     // Calculate an average offset for the gyro
     for (int i = 0; i < OFFSET_AVG_SAMPLES; i++)
     {
-    	gyroOffsetX += gyro.getGyroX();
-    	gyroOffsetY += gyro.getGyroY();
+        gyroOffsetX += gyro.getGyroX();
+        gyroOffsetY += gyro.getGyroY();
     }
-    
+    //use the average calculated while getting the samples to give a more accurate offset value
     gyroOffsetX /= OFFSET_AVG_SAMPLES;
     gyroOffsetY /= OFFSET_AVG_SAMPLES;
     
@@ -78,6 +82,12 @@ void InitGyro()
     #endif
 }
 
+
+/*
+* initialize the accelerometer and set the sample rate frequency 
+* Also get the base offset of the accelerometer at startup to give better
+* measurements in the GetAnglemeasurements function
+*/
 void InitAccelerometer()
 {
     // Put the ADXL345 into standby mode to configure the device
@@ -100,7 +110,7 @@ void InitAccelerometer()
         acclOffsetY += fg.y;
         acclOffsetZ += (fg.z - 1);
     }
-    
+    //Using the offsets sames get the average value to give us a more accurate value
     acclOffsetX /= OFFSET_AVG_SAMPLES;
     acclOffsetY /= OFFSET_AVG_SAMPLES;
     acclOffsetZ /= OFFSET_AVG_SAMPLES;
@@ -110,12 +120,24 @@ void InitAccelerometer()
     #endif
 }
 
+
+/*
+*  Initializes the Gyro and the accelerometer at startup
+*/
 void InitIMU(void)
 {
-    InitGyro();
-    InitAccelerometer();
+    InitGyro();  //initualize the gyro
+    InitAccelerometer(); //initialize the accelerometer
 }
 
+
+/*
+* function using a sample time to calculate the current angle over time
+* the main features of this function are the filter for the accelerometer
+* the measurements gathered from the gyro to get the current angle 
+* and the complimentary filter we used to get our accurate measurement of our
+* angle at any given point in time
+*/
 void GetAngleMeasurements()
 {
     if (((tcurr = t.read_ms()) - tprev) >= IMU_SAMPLE_TIME)
@@ -148,10 +170,6 @@ void GetAngleMeasurements()
     }
 }
 
-/*
- * Updates the PID inputs and outputs. This function is called every iteration
- * of the main control loop, but PID is only updated at a 100Hz rate.
- */
 void ControlUpdate()
 {
     // Update the PID control values, and issue a PID computation
@@ -205,7 +223,7 @@ void SetMotor(uint8_t motor, uint16_t value) {
     pc.printf("set motor %d to %d\r\n", motor, value);
     #endif
 
-    // Change each individual motor/ESC, or update throttle
+    // Change each individual motor/ESC in manual mode or set to automatic, or update throttle
     switch(motor) {
         case ESC_1:
             motormode = MANUAL;

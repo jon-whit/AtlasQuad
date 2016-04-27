@@ -73,7 +73,7 @@ void InitGyro()
       gyroOffsetX += gyro.getGyroX();
       gyroOffsetY += gyro.getGyroY();
     }
-    // Use the average calculated while getting the samples to give a more accurate offset value
+    // Uses the gyroOffset calculated above while getting the samples to give a more accurate offset value on startup for the gyro
     gyroOffsetX /= OFFSET_AVG_SAMPLES;
     gyroOffsetY /= OFFSET_AVG_SAMPLES;
     

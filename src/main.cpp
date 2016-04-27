@@ -70,8 +70,8 @@ void InitGyro()
     // Calculate an average offset for the gyro
     for (int i = 0; i < OFFSET_AVG_SAMPLES; i++)
     {
-        gyroOffsetX += gyro.getGyroX();
-        gyroOffsetY += gyro.getGyroY();
+      gyroOffsetX += gyro.getGyroX();
+      gyroOffsetY += gyro.getGyroY();
     }
     //use the average calculated while getting the samples to give a more accurate offset value
     gyroOffsetX /= OFFSET_AVG_SAMPLES;

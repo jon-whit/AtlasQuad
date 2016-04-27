@@ -148,6 +148,10 @@ void GetAngleMeasurements()
     }
 }
 
+/*
+ * Updates the PID inputs and outputs. This function is called every iteration
+ * of the main control loop, but PID is only updated at a 100Hz rate.
+ */
 void ControlUpdate()
 {
     // Update the PID control values, and issue a PID computation

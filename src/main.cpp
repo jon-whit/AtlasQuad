@@ -55,6 +55,10 @@ int mspeed2, mspeed4 = MOTOR_MIN; // Motors along the y-axis
 //=> Changing their speeds will affect the roll
 
 
+/*
+* Function to initialize the Gyro sample rate. 
+* Measure and Set the base offset value for the gyro for better calculations in the GetAngleMeasurements function.
+*/
 void InitGyro()
 {
     // Set the internal sample rate to 1kHz and set the sample
@@ -66,10 +70,10 @@ void InitGyro()
     // Calculate an average offset for the gyro
     for (int i = 0; i < OFFSET_AVG_SAMPLES; i++)
     {
-    	gyroOffsetX += gyro.getGyroX();
-    	gyroOffsetY += gyro.getGyroY();
+      gyroOffsetX += gyro.getGyroX();
+      gyroOffsetY += gyro.getGyroY();
     }
-    
+    // Uses the gyroOffset calculated above while getting the samples to give a more accurate offset value on startup for the gyro
     gyroOffsetX /= OFFSET_AVG_SAMPLES;
     gyroOffsetY /= OFFSET_AVG_SAMPLES;
     
@@ -78,6 +82,12 @@ void InitGyro()
     #endif
 }
 
+
+/*
+* Initialize the accelerometer and set the sample rate frequency.
+* Measure and set the base offset of the accelerometer at startup to give better
+* measurements in the GetAnglemeasurements function.
+*/
 void InitAccelerometer()
 {
     // Put the ADXL345 into standby mode to configure the device
@@ -100,7 +110,7 @@ void InitAccelerometer()
         acclOffsetY += fg.y;
         acclOffsetZ += (fg.z - 1);
     }
-    
+    // Using the accelOffsets samples above to get the average value to give us a more accurate value startup offset value for the accel.
     acclOffsetX /= OFFSET_AVG_SAMPLES;
     acclOffsetY /= OFFSET_AVG_SAMPLES;
     acclOffsetZ /= OFFSET_AVG_SAMPLES;
@@ -110,12 +120,24 @@ void InitAccelerometer()
     #endif
 }
 
+
+/*
+* Initializes the Gyro and the accelerometer at startup.
+*/
 void InitIMU(void)
 {
-    InitGyro();
-    InitAccelerometer();
+    InitGyro();  // Initialize the gyro
+    InitAccelerometer(); // Initialize the accelerometer
 }
 
+
+/*
+* Function using a sample time to calculate the current angle over time.
+* The main features of this function are the filter for the accelerometer
+* the measurements gathered from the gyro to get the current angle 
+* and the complimentary filter we used to get our accurate measurement of our
+* angle at any given point in time.
+*/
 void GetAngleMeasurements()
 {
     if (((tcurr = t.read_ms()) - tprev) >= IMU_SAMPLE_TIME)

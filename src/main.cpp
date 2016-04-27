@@ -126,8 +126,8 @@ void InitAccelerometer()
 */
 void InitIMU(void)
 {
-    InitGyro();  //initialize the gyro
-    InitAccelerometer(); //initialize the accelerometer
+    InitGyro();  // Initialize the gyro
+    InitAccelerometer(); // Initialize the accelerometer
 }
 
 

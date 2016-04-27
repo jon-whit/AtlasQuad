@@ -56,8 +56,8 @@ int mspeed2, mspeed4 = MOTOR_MIN; // Motors along the y-axis
 
 
 /*
-* Function to initialize the Gyro sample rate and give it the base offset value to give
-* better calculations in the GetAngleMeasurements function.
+* Function to initialize the Gyro sample rate. 
+* Measure and Set the base offset value for the gyro for better calculations in the GetAngleMeasurements function.
 */
 void InitGyro()
 {

@@ -223,7 +223,7 @@ void SetMotor(uint8_t motor, uint16_t value) {
     pc.printf("set motor %d to %d\r\n", motor, value);
     #endif
 
-    // Change each individual motor/ESC in manual mode or set to automatic, or update throttle
+    // Change each individual motor/ESC, or update throttle
     switch(motor) {
         case ESC_1:
             motormode = MANUAL;

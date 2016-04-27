@@ -85,7 +85,7 @@ void InitGyro()
 
 /*
 * Initialize the accelerometer and set the sample rate frequency.
-* Also get the base offset of the accelerometer at startup to give better
+* Measure and set the base offset of the accelerometer at startup to give better
 * measurements in the GetAnglemeasurements function.
 */
 void InitAccelerometer()

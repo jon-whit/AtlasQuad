@@ -110,7 +110,7 @@ void InitAccelerometer()
         acclOffsetY += fg.y;
         acclOffsetZ += (fg.z - 1);
     }
-    // Using the offsets sames get the average value to give us a more accurate value
+    // Using the accelOffsets samples above to get the average value to give us a more accurate value startup offset value for the accel.
     acclOffsetX /= OFFSET_AVG_SAMPLES;
     acclOffsetY /= OFFSET_AVG_SAMPLES;
     acclOffsetZ /= OFFSET_AVG_SAMPLES;

@@ -57,7 +57,7 @@ int mspeed2, mspeed4 = MOTOR_MIN; // Motors along the y-axis
 
 /*
 * Function to initialize the Gyro sample rate and give it the base offset value to give
-* better calculations in the GetAngleMeasurements function
+* better calculations in the GetAngleMeasurements function.
 */
 void InitGyro()
 {
@@ -84,9 +84,9 @@ void InitGyro()
 
 
 /*
-* initialize the accelerometer and set the sample rate frequency 
+* initialize the accelerometer and set the sample rate frequency.
 * Also get the base offset of the accelerometer at startup to give better
-* measurements in the GetAnglemeasurements function
+* measurements in the GetAnglemeasurements function.
 */
 void InitAccelerometer()
 {
@@ -122,7 +122,7 @@ void InitAccelerometer()
 
 
 /*
-*  Initializes the Gyro and the accelerometer at startup
+*  Initializes the Gyro and the accelerometer at startup.
 */
 void InitIMU(void)
 {
@@ -132,11 +132,11 @@ void InitIMU(void)
 
 
 /*
-* function using a sample time to calculate the current angle over time
+* function using a sample time to calculate the current angle over time.
 * the main features of this function are the filter for the accelerometer
 * the measurements gathered from the gyro to get the current angle 
 * and the complimentary filter we used to get our accurate measurement of our
-* angle at any given point in time
+* angle at any given point in time.
 */
 void GetAngleMeasurements()
 {

@@ -170,7 +170,7 @@ void ControlUpdate()
     UpdateMotors(&mspeed1, &mspeed2, &mspeed3, &mspeed4);
 }
 
-/** Dummy callback functions - fill these out with correct commands/function calls later **/
+/** Stop motor (Emergency stop) callback - set ESCs to minimum speed and set PID to manual mode **/
 void StopMotors() {
     
     #ifdef DEBUG
@@ -191,16 +191,18 @@ void StopMotors() {
     yaw_controller.SetMode(MANUAL);
 }
 
+/** Reset callback - soft-reset ARM CPU **/
 void ResetAll() {
     NVIC_SystemReset();
 }
 
+/** Heartbeat callback - respond to an XBee packet as soon as possible **/
 void Heartbeat() {
     comm.send_data((uint8_t *) "OK");
 }
 
+/** Motor callback - set motor values, throttle position, or automatic/manual mode **/
 void SetMotor(uint8_t motor, uint16_t value) {
-    
     #ifdef DEBUG
     pc.printf("set motor %d to %d\r\n", motor, value);
     #endif
@@ -235,6 +237,7 @@ void SetMotor(uint8_t motor, uint16_t value) {
     }
 }
 
+/** Rotation callback - adjust setpoints to the PID controller to move quadcopter **/
 void SetRotation(uint8_t mode, float value) {
     #ifdef DEBUG
     pc.printf("move %d %d\r\n", mode, value);
@@ -266,6 +269,7 @@ void SetRotation(uint8_t mode, float value) {
     }
 }
 
+/** PID settings callback - set PID values (Kp, Ki, or Kd) **/
 void SetPID(uint8_t mode, float value) 
 {
     

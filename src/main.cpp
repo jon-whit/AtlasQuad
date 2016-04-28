@@ -54,7 +54,9 @@ int mspeed1, mspeed3 = MOTOR_MIN; // Motors along the x-axis
 int mspeed2, mspeed4 = MOTOR_MIN; // Motors along the y-axis
 //=> Changing their speeds will affect the roll
 
-
+/*
+ * Initializes the ITG3200 gyro and stores the offset.
+ */
 void InitGyro()
 {
     // Set the internal sample rate to 1kHz and set the sample
@@ -78,6 +80,9 @@ void InitGyro()
     #endif
 }
 
+/*
+ * Initializes the ADXL345 accelerometer and stores the offset.
+ */
 void InitAccelerometer()
 {
     // Put the ADXL345 into standby mode to configure the device
@@ -110,12 +115,28 @@ void InitAccelerometer()
     #endif
 }
 
+/*
+ * Initializes the IMU by calling on the gyro and accelerometer initialization
+ * functions.
+ */
 void InitIMU(void)
 {
     InitGyro();
     InitAccelerometer();
 }
 
+/*
+ * Calculates the roll and pitch angles of the quadcopter.
+ *
+ * This function is called at a particular rate (100Hz by default), and
+ * applies a complimentary filter between the gyro and accelerometer to
+ * achieve a more stable angle measurement. The ITG3200 gyro tends to
+ * drift over time, so it is not ideal for long term use, although its
+ * short term accuracy is superb. The ADXL345 accelerometer is noisy
+ * for instantaneous measurements, but does not drift over time. Applying
+ * a complimentary filter between the two achieves a much more stable
+ * measurement.
+ */
 void GetAngleMeasurements()
 {
     if (((tcurr = t.read_ms()) - tprev) >= IMU_SAMPLE_TIME)

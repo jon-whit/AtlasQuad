@@ -54,7 +54,9 @@ int mspeed1, mspeed3 = MOTOR_MIN; // Motors along the x-axis
 int mspeed2, mspeed4 = MOTOR_MIN; // Motors along the y-axis
 //=> Changing their speeds will affect the roll
 
-
+/*
+ * Initializes the ITG3200 gyro and stores the offset.
+ */
 void InitGyro()
 {
     // Set the internal sample rate to 1kHz and set the sample
@@ -78,6 +80,9 @@ void InitGyro()
     #endif
 }
 
+/*
+ * Initializes the ADXL345 accelerometer and stores the offset.
+ */
 void InitAccelerometer()
 {
     // Put the ADXL345 into standby mode to configure the device
@@ -110,12 +115,28 @@ void InitAccelerometer()
     #endif
 }
 
+/*
+ * Initializes the IMU by calling on the gyro and accelerometer initialization
+ * functions.
+ */
 void InitIMU(void)
 {
     InitGyro();
     InitAccelerometer();
 }
 
+/*
+ * Calculates the roll and pitch angles of the quadcopter.
+ *
+ * This function is called at a particular rate (100Hz by default), and
+ * applies a complimentary filter between the gyro and accelerometer to
+ * achieve a more stable angle measurement. The ITG3200 gyro tends to
+ * drift over time, so it is not ideal for long term use, although its
+ * short term accuracy is superb. The ADXL345 accelerometer is noisy
+ * for instantaneous measurements, but does not drift over time. Applying
+ * a complimentary filter between the two achieves a much more stable
+ * measurement.
+ */
 void GetAngleMeasurements()
 {
     if (((tcurr = t.read_ms()) - tprev) >= IMU_SAMPLE_TIME)
@@ -148,6 +169,10 @@ void GetAngleMeasurements()
     }
 }
 
+/*
+ * Updates the PID inputs and outputs. This function is called every iteration
+ * of the main control loop, but PID is only updated at a 100Hz rate.
+ */
 void ControlUpdate()
 {
     // Update the PID control values, and issue a PID computation
@@ -166,7 +191,7 @@ void ControlUpdate()
     UpdateMotors(&mspeed1, &mspeed2, &mspeed3, &mspeed4);
 }
 
-/** Dummy callback functions - fill these out with correct commands/function calls later **/
+/** Stop motor (Emergency stop) callback - set ESCs to minimum speed and set PID to manual mode **/
 void StopMotors() {
     
     #ifdef DEBUG
@@ -180,14 +205,25 @@ void StopMotors() {
     mspeed3 = MOTOR_MIN;
     mspeed4 = MOTOR_MIN;
     UpdateMotors(&mspeed1, &mspeed2, &mspeed3, &mspeed4);
+
+    // also stop PID computes
+    roll_controller.SetMode(MANUAL);
+    pitch_controller.SetMode(MANUAL);
+    yaw_controller.SetMode(MANUAL);
 }
 
+/** Reset callback - soft-reset ARM CPU **/
+void ResetAll() {
+    NVIC_SystemReset();
+}
+
+/** Heartbeat callback - respond to an XBee packet as soon as possible **/
 void Heartbeat() {
     comm.send_data((uint8_t *) "OK");
 }
 
+/** Motor callback - set motor values, throttle position, or automatic/manual mode **/
 void SetMotor(uint8_t motor, uint16_t value) {
-    
     #ifdef DEBUG
     pc.printf("set motor %d to %d\r\n", motor, value);
     #endif
@@ -212,6 +248,9 @@ void SetMotor(uint8_t motor, uint16_t value) {
             break;
         case ESC_AUTO:
             motormode = AUTOMATIC;
+            roll_controller.SetMode(AUTOMATIC);
+            pitch_controller.SetMode(AUTOMATIC);
+            yaw_controller.SetMode(AUTOMATIC);
             break;
         case THROTTLE:
             throttle = value;
@@ -219,6 +258,7 @@ void SetMotor(uint8_t motor, uint16_t value) {
     }
 }
 
+/** Rotation callback - adjust setpoints to the PID controller to move quadcopter **/
 void SetRotation(uint8_t mode, float value) {
     #ifdef DEBUG
     pc.printf("move %d %d\r\n", mode, value);
@@ -250,6 +290,7 @@ void SetRotation(uint8_t mode, float value) {
     }
 }
 
+/** PID settings callback - set PID values (Kp, Ki, or Kd) **/
 void SetPID(uint8_t mode, float value) 
 {
     
@@ -293,7 +334,7 @@ int main()
     pc.printf("Initializing Communications...\r\n");
     #endif
     comm.init();
-    comm.register_callbacks(&StopMotors, &Heartbeat, &SetRotation, &SetMotor, &SetPID);
+    comm.register_callbacks(&StopMotors, &ResetAll, &Heartbeat, &SetRotation, &SetMotor, &SetPID);
     commticker.attach(&comm, &XBeeUART::process_frames, 0.1); // process received frames at 10 Hz
 
     #ifdef DEBUG

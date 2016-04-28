@@ -7,6 +7,7 @@ using namespace XBeeLib;
 uint8_t XBeeUART::recent_msg_byte_ = 0;
 
 UARTBasicCallback_t  XBeeUART::stopcallback_ = NULL;
+UARTBasicCallback_t  XBeeUART::resetcallback_ = NULL;
 UARTBasicCallback_t  XBeeUART::heartbeatcallback_ = NULL;
 UARTMoveCallback_t  XBeeUART::movecallback_ = NULL;
 UARTMotorCallback_t XBeeUART::motorcallback_ = NULL;
@@ -26,14 +27,15 @@ void XBeeUART::init() {
     xbee_->init();
 }
 
-uint8_t XBeeUART::register_callbacks(UARTBasicCallback_t stop, UARTBasicCallback_t heartbeat, UARTMoveCallback_t move, UARTMotorCallback_t motor, UARTPIDCallback_t pid) {
+uint8_t XBeeUART::register_callbacks(UARTBasicCallback_t stop, UARTBasicCallback_t reset, UARTBasicCallback_t heartbeat, UARTMoveCallback_t move, UARTMotorCallback_t motor, UARTPIDCallback_t pid) {
     stopcallback_ = stop;
+    resetcallback_ = reset;
     heartbeatcallback_ = heartbeat;
     movecallback_ = move;
     motorcallback_ = motor;
     pidcallback_ = pid;
 
-    if(stopcallback_ == NULL || heartbeatcallback_ == NULL || movecallback_ == NULL || motorcallback_ == NULL)
+    if(stopcallback_ == NULL || resetcallback_ == NULL || heartbeatcallback_ == NULL || movecallback_ == NULL || motorcallback_ == NULL)
         return 1;
     else
         return 0;
@@ -88,6 +90,8 @@ void XBeeUART::receive_cb_(const RemoteXBee802& remote, bool broadcast, const ui
         memcpy(command, data, 2);
         if(!strncmp("SA", command, 2)) {
             stopcallback_();
+        } else if(!strncmp("RR", command, 2)) {
+            resetcallback_();
         } else if(!strncmp("HB", command, 2)) {
             heartbeatcallback_();
         } else {

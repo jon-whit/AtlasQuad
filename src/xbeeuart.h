@@ -35,6 +35,7 @@
 #define UART_KD   2
 #define ESC_AUTO  6
 #define IMU_RST   0
+#define SOFT_RST  1
 
 typedef void     (*UARTBasicCallback_t)();
 typedef void     (*UARTMoveCallback_t)(uint8_t, float);
@@ -61,7 +62,7 @@ public:
      * Register callbacks to be used whenever a message is received. The callbacks are run
      * as soon as a message is received, depending on the message content and/or command.
      */
-    uint8_t register_callbacks(UARTBasicCallback_t stop, UARTBasicCallback_t heartbeat, UARTMoveCallback_t move, UARTMotorCallback_t motor, UARTPIDCallback_t pid);
+    uint8_t register_callbacks(UARTBasicCallback_t stop, UARTBasicCallback_t reset, UARTBasicCallback_t heartbeat, UARTMoveCallback_t move, UARTMotorCallback_t motor, UARTPIDCallback_t pid);
 
     /**
      * Get most recent message (first byte, anyway) received by the radio.
@@ -98,6 +99,7 @@ private:
     static void receive_cb_(const XBeeLib::RemoteXBee802& remote, bool broadcast, const uint8_t *const data, uint16_t len);
     static uint8_t recent_msg_byte_;
     static UARTBasicCallback_t  stopcallback_;
+    static UARTBasicCallback_t  resetcallback_;
     static UARTBasicCallback_t  heartbeatcallback_;
     static UARTMoveCallback_t  movecallback_;
     static UARTMotorCallback_t motorcallback_;

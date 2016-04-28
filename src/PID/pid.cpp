@@ -8,7 +8,6 @@ extern PID yaw_controller;
 PID::PID(float* Input, float* Output, float* Setpoint,
          float Kp, float Ki, float Kd, int ControllerDirection)
 {
-    
     myOutput = Output;
     myInput = Input;
     mySetpoint = Setpoint;
@@ -156,6 +155,10 @@ void PIDInit(int SampleTime)
     yaw_controller.SetOutputLimits(PID_OUT_MIN, PID_OUT_MAX);
     yaw_controller.SetMode(AUTOMATIC);
     yaw_controller.SetSampleTime(SampleTime); // in ms
+
+    PIDSetKp(KP);
+    PIDSetKi(KI);
+    PIDSetKd(KD);
 }
 
 void PIDUpdate(void)

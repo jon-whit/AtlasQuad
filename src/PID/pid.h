@@ -7,9 +7,9 @@ extern float pid_roll_setpoint, pid_pitch_setpoint, pid_yaw_setpoint;
 extern float roll, pitch, yaw;
 extern Timer t;
 
-#define KP 0.02
-#define KI 0.0125
-#define KD 1.25
+#define KP 0.2
+#define KI 0.2
+#define KD 0.006
 
 /*
  * PID - A PID controller implementation.
@@ -61,13 +61,45 @@ public:
         
     bool Compute(void);
     
+    /*
+     * Sets the PID tuning parameters on the fly.
+     */
     void SetTunings(float Kp, float Ki, float Kd);
+    
+    /*
+     * Set the Kp parameter on the fly.
+     */
     void SetKp(float Kp);
+    
+    /*
+     * Set the Ki parameter on the fly.
+     */
     void SetKi(float Ki);
+    
+    /*
+     * Set the Kd parameter on the fly.
+     */
     void SetKd(float Kd);
+    
+    /*
+     * Sets the sample time of the PID controller, maintaining a constant ratio, 
+     * thus making a smooth transition between different sample rates.
+     */
     void SetSampleTime(int NewSampleTime);
+    
+    /*
+     * Sets the minimum and maximum output limits of this PID controller.
+     */
     void SetOutputLimits(float Min, float Max);
+    
+    /*
+     * Sets the mode of this PID controller (either AUTOMATIC or MANUAL).
+     */
     void SetMode(int Mode);
+    
+    /*
+     * Sets the direction of this PID controller (either DIRECT or REVERSE).
+     */
     void SetControllerDirection(int Direction);
     
     float GetKp();
@@ -78,12 +110,39 @@ public:
         
 };
 
+/*
+ * Initializes all of the PIDs of the AtlasQuad system.
+ */
 void PIDInit(int SampleTime);
+
+/*
+ * Updates all of the inputs to each PID controller for the AtlasQuad system.
+ */
 void PIDUpdate(void);
+
+/*
+ * Computes the output for each PID controller for the AtlasQuad system.
+ */
 void PIDCompute(void);
+
+/*
+ * Sets the PID constants across each PID controller for the AtlasQuad system.
+ */
 void PIDSetConstants(float kp, float ki, float kd);
+
+/*
+ * Sets the Kp parameter across each PID controller for the AtlasQuad system.
+ */
 void PIDSetKp(float kp);
+
+/*
+ * Sets the Ki parameter across each PID controller for the AtlasQuad system.
+ */
 void PIDSetKi(float ki);
+
+/*
+ * Sets the Kd parameter across each PID controller for the AtlasQuad system.
+ */
 void PIDSetKd(float kd);
 
 #endif

@@ -1,5 +1,5 @@
 # AtlasQuad
-A simple quadcopter project build on the DJI F450 quadcopter model.
+A simple quadcopter project built on the DJI F450 quadcopter model.
 
 ## Building
 To build the project without debugging output, simply issue the command:
